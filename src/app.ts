@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('dotenv').config()
+
 import * as express from "express"
 import { Request, Response } from "express"
 import { initAppDataSource } from "./db"

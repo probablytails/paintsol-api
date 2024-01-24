@@ -1,15 +1,16 @@
 import { DataSource } from "typeorm"
+import { config } from "../lib/config"
 import { Image } from "../models/image"
 import { ImageTag } from "../models/imageTag"
 import { Tag } from "../models/tag"
 
 const appDataSource = new DataSource({
   type: "postgres",
-  host: "localhost",
-  port: 5555,
-  username: "user",
-  password: "mysecretpw",
-  database: "db",
+  host: config.db.host,
+  port: config.db.port,
+  database: config.db.database,
+  username: config.db.username,
+  password: config.db.password,
   synchronize: false,
   entities: [Image, Tag, ImageTag]
 })
