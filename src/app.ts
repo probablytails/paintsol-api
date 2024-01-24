@@ -3,12 +3,14 @@ require('dotenv').config()
 
 import * as express from "express"
 import { Request, Response } from "express"
-import { initAppDataSource } from "./db"
+import { auth, requiresAuth } from 'express-openid-connect'
 import { createImage, deleteImage, getImage, getImagesByTagId, searchImages, updateImage } from "./controllers/image"
-import { parsePageQuery } from "./middleware/parsePageQuery"
-import { PageRequest, PathIntIdRequest } from "./types"
-import { parsePathIntId } from "./middleware/parsePathIntId"
 import { getAllTags } from "./controllers/tag"
+import { initAppDataSource } from "./db"
+import { config } from "./lib/config"
+import { parsePageQuery } from "./middleware/parsePageQuery"
+import { parsePathIntId } from "./middleware/parsePathIntId"
+import { PageRequest, PathIntIdRequest } from "./types"
 
 const port = 4321
 
@@ -17,6 +19,14 @@ const startApp = async () => {
 
   const app = express()
   app.use(express.json())
+
+  // auth0 router attaches /login, /logout, and /callback routes to the baseURL
+  app.use(auth(config.auth0))
+
+  app.get("/", async function (req: PageRequest, res: Response) {
+    res.status(200)
+    res.send('The $PAINT website API is running')
+  })
 
   app.get("/images", parsePageQuery, async function (req: PageRequest, res: Response) {
     try {
@@ -59,19 +69,20 @@ const startApp = async () => {
     }
   })
 
-  app.delete("/image/:id", parsePathIntId, async function (req: PathIntIdRequest, res: Response) {
-    try {
-      const { id } = req.locals
-      await deleteImage(id)
-      res.status(201)
-      res.send({ message: 'Image successfully deleted' })
-    } catch (error) {
-      res.status(400)
-      res.send({ message: error.message })
-    }
-  })
+  app.delete("/image/:id", requiresAuth(), parsePathIntId,
+    async function (req: PathIntIdRequest, res: Response) {
+      try {
+        const { id } = req.locals
+        await deleteImage(id)
+        res.status(201)
+        res.send({ message: 'Image successfully deleted' })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
 
-  app.post("/image", async function (req: Request, res: Response) {
+  app.post("/image", requiresAuth(), async function (req: Request, res: Response) {
     try {
       const { tagTitles = [], title } = req.body
       const data = await createImage({ tagTitles, title })
@@ -83,7 +94,7 @@ const startApp = async () => {
     }
   })
 
-  app.patch("/image", async function (req: Request, res: Response) {
+  app.patch("/image", requiresAuth(), async function (req: Request, res: Response) {
     try {
       const { id, tagTitles = [], title } = req.body
       const data = await updateImage({ id, tagTitles, title })
