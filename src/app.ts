@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config()
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cors = require('cors')
 
 import * as express from "express"
 import { Request, Response } from "express"
@@ -19,6 +21,12 @@ const startApp = async () => {
 
   const app = express()
   app.use(express.json())
+
+  const corsOptions = {
+    origin: 'http://localhost:3000',
+    credentials: true
+  }
+  app.use(cors(corsOptions))
 
   // auth0 router attaches /login, /logout, and /callback routes to the baseURL
   app.use(auth(config.auth0))
