@@ -3,16 +3,16 @@ require('dotenv').config()
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cors = require('cors')
 
-import * as express from "express"
-import { Request, Response } from "express"
+import * as express from 'express'
+import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { createImage, deleteImage, getImage, getImagesByTagId, searchImages, updateImage } from "./controllers/image"
-import { getAllTags } from "./controllers/tag"
-import { initAppDataSource } from "./db"
-import { config } from "./lib/config"
-import { parsePageQuery } from "./middleware/parsePageQuery"
-import { parsePathIntId } from "./middleware/parsePathIntId"
-import { PageRequest, PathIntIdRequest } from "./types"
+import { createImage, deleteImage, getImage, getImagesByTagId, searchImages, updateImage } from './controllers/image'
+import { getAllTags } from './controllers/tag'
+import { initAppDataSource } from './db'
+import { config } from './lib/config'
+import { parsePageQuery } from './middleware/parsePageQuery'
+import { parsePathIntId } from './middleware/parsePathIntId'
+import { PageRequest, PathIntIdRequest } from './types'
 
 const port = 4321
 
@@ -31,11 +31,11 @@ const startApp = async () => {
   // auth0 router attaches /login, /logout, and /callback routes to the baseURL
   app.use(auth(config.auth0))
 
-  app.get("/", async function (req: Request, res: Response) {
+  app.get('/', async function (req: Request, res: Response) {
     res.redirect(config.web.baseUrl)
   })
 
-  app.get("/admin/userinfo", async function (req: Request, res: Response) {
+  app.get('/admin/userinfo', async function (req: Request, res: Response) {
     const user = req.oidc.user
     if (user) {
       const data = {
@@ -50,7 +50,7 @@ const startApp = async () => {
     }
   })
 
-  app.get("/images", parsePageQuery, async function (req: PageRequest, res: Response) {
+  app.get('/images', parsePageQuery, async function (req: PageRequest, res: Response) {
     try {
       const { page } = req.locals
       const data = await searchImages({ page })
@@ -62,7 +62,7 @@ const startApp = async () => {
     }
   })
 
-  app.get("/images/by-tag", parsePageQuery, async function (req: PageRequest, res: Response) {
+  app.get('/images/by-tag', parsePageQuery, async function (req: PageRequest, res: Response) {
     try {
       const { id: tagId, page } = req.locals
       const data = await getImagesByTagId({ tagId, page })
@@ -74,7 +74,7 @@ const startApp = async () => {
     }
   })
 
-  app.get("/image/:id", parsePathIntId, async function (req: PathIntIdRequest, res: Response) {
+  app.get('/image/:id', parsePathIntId, async function (req: PathIntIdRequest, res: Response) {
     try {
       const { id } = req.locals
       const data = await getImage(id)
@@ -91,7 +91,7 @@ const startApp = async () => {
     }
   })
 
-  app.delete("/image/:id", requiresAuth(), parsePathIntId,
+  app.delete('/image/:id', requiresAuth(), parsePathIntId,
     async function (req: PathIntIdRequest, res: Response) {
       try {
         const { id } = req.locals
@@ -104,7 +104,7 @@ const startApp = async () => {
       }
     })
 
-  app.post("/image", requiresAuth(), async function (req: Request, res: Response) {
+  app.post('/image', requiresAuth(), async function (req: Request, res: Response) {
     try {
       const { tagTitles = [], title } = req.body
       const data = await createImage({ tagTitles, title })
@@ -116,7 +116,7 @@ const startApp = async () => {
     }
   })
 
-  app.patch("/image", requiresAuth(), async function (req: Request, res: Response) {
+  app.patch('/image', requiresAuth(), async function (req: Request, res: Response) {
     try {
       const { id, tagTitles = [], title } = req.body
       const data = await updateImage({ id, tagTitles, title })
@@ -128,7 +128,7 @@ const startApp = async () => {
     }
   })
 
-  app.get("/tags/all", async function (req: Request, res: Response) {
+  app.get('/tags/all', async function (req: Request, res: Response) {
     try {
       const data = await getAllTags()
       res.status(200)

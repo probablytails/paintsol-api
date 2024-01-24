@@ -1,11 +1,11 @@
-import { DataSource } from "typeorm"
-import { config } from "../lib/config"
-import { Image } from "../models/image"
-import { ImageTag } from "../models/imageTag"
-import { Tag } from "../models/tag"
+import { DataSource } from 'typeorm'
+import { config } from '../lib/config'
+import { Image } from '../models/image'
+import { ImageTag } from '../models/imageTag'
+import { Tag } from '../models/tag'
 
 const appDataSource = new DataSource({
-  type: "postgres",
+  type: 'postgres',
   host: config.db.host,
   port: config.db.port,
   database: config.db.database,
@@ -18,10 +18,10 @@ const appDataSource = new DataSource({
 export const initAppDataSource = () => {
   return appDataSource.initialize()
     .then(() => {
-      console.log("Data Source has been initialized!")
+      console.log('Data Source has been initialized!')
     })
     .catch((err) => {
-      console.error("Error during Data Source initialization", err)
+      console.error('Error during Data Source initialization', err)
       throw new Error('initAppDataSource failed')
     })
 }

@@ -1,6 +1,6 @@
-import { Equal } from "typeorm"
-import appDataSource from "../db"
-import { Tag } from "../models/tag"
+import { Equal } from 'typeorm'
+import appDataSource from '../db'
+import { Tag } from '../models/tag'
 
 type FindOrCreateTags = string[]
 

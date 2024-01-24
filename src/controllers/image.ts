@@ -1,4 +1,4 @@
-import { Equal, In } from 'typeorm'
+import { Equal } from 'typeorm'
 import appDataSource from '../db'
 import { handleError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'

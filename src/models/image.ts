@@ -1,6 +1,7 @@
 /* eslint-disable indent */
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable } from "typeorm"
-import { Tag } from "./tag"
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn,
+  UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm'
+import { Tag } from './tag'
 
 @Entity('image', { schema: 'public' })
 export class Image {
