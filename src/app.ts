@@ -24,8 +24,7 @@ const startApp = async () => {
   app.use(auth(config.auth0))
 
   app.get("/", async function (req: PageRequest, res: Response) {
-    res.status(200)
-    res.send('The $PAINT website API is running')
+    res.redirect(config.web.baseUrl)
   })
 
   app.get("/images", parsePageQuery, async function (req: PageRequest, res: Response) {
