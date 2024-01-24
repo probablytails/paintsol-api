@@ -23,8 +23,23 @@ const startApp = async () => {
   // auth0 router attaches /login, /logout, and /callback routes to the baseURL
   app.use(auth(config.auth0))
 
-  app.get("/", async function (req: PageRequest, res: Response) {
+  app.get("/", async function (req: Request, res: Response) {
     res.redirect(config.web.baseUrl)
+  })
+
+  app.get("/admin/userinfo", async function (req: Request, res: Response) {
+    const user = req.oidc.user
+    if (user) {
+      const data = {
+        nickname: user.nickname,
+        picture: user.picture
+      }
+      res.status(200)
+      res.send(data)
+    } else {
+      res.status(401)
+      res.send()
+    }
   })
 
   app.get("/images", parsePageQuery, async function (req: PageRequest, res: Response) {
