@@ -6,16 +6,40 @@ import { Image } from '../models/image'
 import { findOrCreateTags, getTagById } from './tag'
 import { ImageTag } from '../models/imageTag'
 
+export async function getImageMaxId() {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const imageWithMaxId = await imageRepo.find({
+      order: {
+        id: 'DESC'
+      },
+      take: 1
+    })
+
+    if (imageWithMaxId[0]) {
+      return imageWithMaxId[0].id
+    } else {
+      return 0
+    }
+  } catch (error: unknown) {
+    handleError(error)
+  }
+}
+
 type CreateImage = {
+  id: number
+  slug: string | null
   tagTitles: string[]
   title: string | null
 }
 
-export async function createImage({ tagTitles, title }: CreateImage) {  
+export async function createImage({ id, slug, tagTitles, title }: CreateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
   
     const image = new Image()
+    image.id = id
+    image.slug = slug
     image.title = title
   
     const tags = await findOrCreateTags(tagTitles)
@@ -29,6 +53,7 @@ export async function createImage({ tagTitles, title }: CreateImage) {
 
 type UpdateImage = {
   id: number
+  slug: string | null
   tagTitles: string[]
   title: string | null
 }
@@ -36,7 +61,7 @@ type UpdateImage = {
 export async function updateImage({ id, tagTitles, title }: UpdateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
-    const oldImage = await getImage(id)
+    const oldImage = await getImageById(id)
   
     if (!oldImage) {
       throw new Error(`No image found for the id ${id}`)
@@ -72,12 +97,26 @@ export async function deleteImage(id: number) {
   }
 }
 
-export async function getImage(id: number) {
+export async function getImageById(id: number) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     return imageRepo.findOne({
       where: {
         id: Equal(id)
+      },
+      relations: ['tags']
+    })
+  } catch (error: unknown) {
+    handleError(error)
+  }
+}
+
+export async function getImageBySlug(slug: string) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    return imageRepo.findOne({
+      where: {
+        slug: Equal(slug)
       },
       relations: ['tags']
     })

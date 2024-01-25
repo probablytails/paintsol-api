@@ -1,12 +1,31 @@
 /* eslint-disable indent */
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn,
-  UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm'
+import { Entity, Column, CreateDateColumn,
+  UpdateDateColumn, ManyToMany, JoinTable, PrimaryColumn } from 'typeorm'
 import { Tag } from './tag'
 
 @Entity('image', { schema: 'public' })
 export class Image {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number
+
+  @Column({ type: 'boolean', default: false })
+  has_animation: boolean
+  
+  @Column({ type: 'boolean', default: false })
+  has_border: boolean
+  
+  @Column({ type: 'boolean', default: false })
+  has_no_border: boolean
+  
+  @Column({ type: 'boolean', default: false })
+  has_video: boolean
+
+  @Column({
+    type: 'varchar',
+    length: 256,
+    nullable: true
+  })
+  slug: string | null
 
   @Column({
     type: 'varchar',

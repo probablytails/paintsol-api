@@ -11,8 +11,13 @@ $$ LANGUAGE plpgsql;
 -- Create Image table
 
 CREATE TABLE public.image (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     title VARCHAR(256),
+    has_animation BOOLEAN DEFAULT false,
+    has_border BOOLEAN DEFAULT false,
+    has_no_border BOOLEAN DEFAULT false,
+    has_video BOOLEAN DEFAULT false,
+    slug VARCHAR(256) UNIQUE NOT NULL CHECK (slug = LOWER(slug)),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -27,7 +32,7 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TABLE public.tag (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(255) UNIQUE NOT NULL CHECK (title = LOWER(title)),
+    title VARCHAR(256) UNIQUE NOT NULL CHECK (title = LOWER(title)),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
