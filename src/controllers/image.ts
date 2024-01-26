@@ -170,12 +170,21 @@ export async function deleteImage(id: number) {
 export async function getImageById(id: number) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
-    return imageRepo.findOne({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const image: any = await imageRepo.findOne({
       where: {
         id: Equal(id)
       },
       relations: ['tags']
     })
+
+    const prevId = await getImagePrevId(id)
+    const nextId = await getImageNextId(id)
+
+    image.prevId = prevId
+    image.nextId = nextId
+
+    return image
   } catch (error: unknown) {
     handleError(error)
   }
@@ -184,12 +193,21 @@ export async function getImageById(id: number) {
 export async function getImageBySlug(slug: string) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
-    return imageRepo.findOne({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const image: any = await imageRepo.findOne({
       where: {
         slug: Equal(slug)
       },
       relations: ['tags']
     })
+
+    const prevId = await getImagePrevId(image.id)
+    const nextId = await getImageNextId(image.id)
+
+    image.prevId = prevId
+    image.nextId = nextId
+    
+    return image
   } catch (error: unknown) {
     handleError(error)
   }
