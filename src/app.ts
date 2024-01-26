@@ -157,7 +157,7 @@ const startApp = async () => {
       try {
         const { id } = req.body
         const parsedId = parseInt(id)
-        if (parsedId > 1) {
+        if (parsedId === 1 || parsedId > 1) {
           const isUpdating = true
           const data = await imagesUploadHandler(req, id, isUpdating)
           res.status(201)
