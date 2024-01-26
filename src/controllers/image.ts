@@ -178,11 +178,12 @@ export async function getImageById(id: number) {
       relations: ['tags']
     })
 
-    const prevId = await getImagePrevId(id)
-    const nextId = await getImageNextId(id)
-
-    image.prevId = prevId
-    image.nextId = nextId
+    if (image) {
+      const prevId = await getImagePrevId(image.id)
+      const nextId = await getImageNextId(image.id)
+      image.prevId = prevId
+      image.nextId = nextId
+    }
 
     return image
   } catch (error: unknown) {
@@ -201,11 +202,12 @@ export async function getImageBySlug(slug: string) {
       relations: ['tags']
     })
 
-    const prevId = await getImagePrevId(image.id)
-    const nextId = await getImageNextId(image.id)
-
-    image.prevId = prevId
-    image.nextId = nextId
+    if (image) {
+      const prevId = await getImagePrevId(image.id)
+      const nextId = await getImageNextId(image.id)
+      image.prevId = prevId
+      image.nextId = nextId
+    }
     
     return image
   } catch (error: unknown) {
