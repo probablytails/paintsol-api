@@ -1,4 +1,4 @@
-import { Equal } from 'typeorm'
+import { Equal, LessThan, MoreThan } from 'typeorm'
 import appDataSource from '../db'
 import { handleError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'
@@ -20,6 +20,52 @@ export async function getImageMaxId() {
       return imageWithMaxId[0].id
     } else {
       return 0
+    }
+  } catch (error: unknown) {
+    handleError(error)
+  }
+}
+
+export async function getImageNextId(currentId: number) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const imageNext = await imageRepo.find({
+      where: {
+        id: MoreThan(currentId)
+      },
+      order: {
+        id: 'ASC'
+      },
+      take: 1
+    })
+
+    if (imageNext[0]) {
+      return imageNext[0].id
+    } else {
+      return null
+    }
+  } catch (error: unknown) {
+    handleError(error)
+  }
+}
+
+export async function getImagePrevId(currentId: number) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const imagePrev = await imageRepo.find({
+      where: {
+        id: LessThan(currentId)
+      },
+      order: {
+        id: 'DESC'
+      },
+      take: 1
+    })
+
+    if (imagePrev[0]) {
+      return imagePrev[0].id
+    } else {
+      return null
     }
   } catch (error: unknown) {
     handleError(error)

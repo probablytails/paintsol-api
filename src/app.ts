@@ -8,7 +8,7 @@ const multer = require('multer')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
+import { getImageById, getImageBySlug, getImageMaxId, getImageNextId, getImagePrevId, getImagesByTagId, searchImages } from './controllers/image'
 import { getAllTags } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
@@ -80,6 +80,52 @@ const startApp = async () => {
         const data = await searchImages({ page })
         res.status(200)
         res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/image/get-next/:id',
+    parsePathIntIdOrSlug,
+    async (req: PathIntIdOrSlugRequest, res: Response) => {
+      try {
+        const { intId } = req.locals
+        let nextId = null
+        if (intId) {
+          nextId = await getImageNextId(intId)
+        }
+
+        if (!nextId) {
+          res.status(404)
+          res.send({ message: 'Image not found' })
+        } else {
+          res.status(200)
+          res.send({ nextId })
+        }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/image/get-prev/:id',
+    parsePathIntIdOrSlug,
+    async (req: PathIntIdOrSlugRequest, res: Response) => {
+      try {
+        const { intId } = req.locals
+        let prevId = null
+        if (intId) {
+          prevId = await getImagePrevId(intId)
+        }
+
+        if (!prevId) {
+          res.status(404)
+          res.send({ message: 'Image not found' })
+        } else {
+          res.status(200)
+          res.send({ prevId })
+        }
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
