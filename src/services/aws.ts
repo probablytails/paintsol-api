@@ -9,6 +9,19 @@ const s3 = new S3({
   region: config.aws.region
 })
 
+export const deleteImageFromS3 = async (
+  id: number,
+  imageType: ImageType
+) => {
+  const key = `${id}-${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
+  const params = {
+    Bucket: config.aws.imageBucket,
+    Key: key // The key is the filename in the S3 bucket
+  }
+
+  return s3.deleteObject(params)
+}
+
 export const uploadImageToS3 = async (
   id: number,
   imageType: ImageType,

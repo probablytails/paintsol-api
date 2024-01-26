@@ -1,6 +1,6 @@
 import { createImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
 import { ImageUploadRequest } from '../types'
-import { uploadImageToS3 } from './aws'
+import { deleteImageFromS3, uploadImageToS3 } from './aws'
 
 export const imageUploadFields = [
   {
@@ -64,6 +64,9 @@ type ImageUpload = {
   has_no_border: boolean
   id: number | null
   isUpdating: boolean
+  remove_animation: boolean
+  remove_border: boolean
+  remove_no_border: boolean
   slug: string | null
   tagTitles: string[]
   title: string | null
@@ -90,6 +93,9 @@ const imagesUpload = async ({
   has_no_border,
   id,
   isUpdating,
+  remove_animation,
+  remove_border,
+  remove_no_border,
   slug,
   tagTitles,
   title
@@ -114,7 +120,10 @@ const imagesUpload = async ({
     }
   }
 
-  if (fileImageAnimation) {
+  if (remove_animation) {
+    await deleteImageFromS3(id, 'animation')
+    imageData.has_animation = false
+  } else if (fileImageAnimation) {
     try {
       await uploadImageToS3(id, 'animation', fileImageAnimation)
       imageData.has_animation = true
@@ -123,7 +132,10 @@ const imagesUpload = async ({
     }
   }
   
-  if (fileImageBorder) {
+  if (remove_border) {
+    await deleteImageFromS3(id, 'border')
+    imageData.has_border = false
+  } else if (fileImageBorder) {
     try {
       await uploadImageToS3(id, 'border', fileImageBorder)
       imageData.has_border = true
@@ -132,7 +144,10 @@ const imagesUpload = async ({
     }
   }
   
-  if (fileImageNoBorder) {
+  if (remove_no_border) {
+    await deleteImageFromS3(id, 'no-border')
+    imageData.has_no_border = false
+  } else if (fileImageNoBorder) {
     try {
       await uploadImageToS3(id, 'no-border', fileImageNoBorder)
       imageData.has_no_border = true
@@ -157,7 +172,8 @@ const imagesUpload = async ({
 }
 
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
-  const { artist, has_animation, has_border, has_no_border, slug, tagTitles = [], title } = req.body
+  const { artist, has_animation, has_border, has_no_border, remove_animation, remove_border,
+    remove_no_border, slug, tagTitles = [], title } = req.body
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
 
   const fileImageAnimation = fileImageAnimations?.[0]
@@ -176,6 +192,9 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
     has_no_border,
     id,
     isUpdating,
+    remove_animation,
+    remove_border,
+    remove_no_border,
     slug,
     tagTitles: parsedTagTitles,
     title
