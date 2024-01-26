@@ -1,4 +1,4 @@
-import { createImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
+import { createImage, deleteImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 
@@ -201,4 +201,11 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
   })
 
   return data
+}
+
+export const deleteS3ImageAndDBImage = async (id: number) => {
+  await deleteImageFromS3(id, 'animation')
+  await deleteImageFromS3(id, 'border')
+  await deleteImageFromS3(id, 'no-border')
+  await deleteImage(id)
 }

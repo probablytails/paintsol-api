@@ -8,14 +8,14 @@ const multer = require('multer')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { deleteImage, getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
+import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
 import { getAllTags } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
 import { ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
-import { imageUploadFields, imagesUploadHandler } from './services/imageUpload'
+import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 
 const port = 4321
 
@@ -112,13 +112,18 @@ const startApp = async () => {
       }
     })
 
-  app.delete('/image/:id',
-    requiresAuth(),
+  /*
+    Using POST for this delete endpoint instead of DELETE
+    because I was getting a CORS issue from Auth0 when I
+    tried to use the DELETE request method.
+  */
+  app.post('/image/delete/:id',
+    // requiresAuth(),
     parsePathIntIdOrSlug,
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
         const { intId } = req.locals
-        await deleteImage(intId)
+        await deleteS3ImageAndDBImage(intId)
         res.status(201)
         res.send({ message: 'Image successfully deleted' })
       } catch (error) {

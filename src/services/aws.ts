@@ -19,7 +19,7 @@ export const deleteImageFromS3 = async (
     Key: key // The key is the filename in the S3 bucket
   }
 
-  return s3.deleteObject(params)
+  return s3.deleteObject(params).promise()
 }
 
 export const uploadImageToS3 = async (
