@@ -26,20 +26,37 @@ export async function getImageMaxId() {
   }
 }
 
-type CreateImage = {
+type CreateOrUpdateImage = {
+  artist: string | null
   id: number
+  has_animation: boolean
+  has_border: boolean
+  has_no_border: boolean
   slug: string | null
   tagTitles: string[]
   title: string | null
 }
 
-export async function createImage({ id, slug, tagTitles, title }: CreateImage) {  
+export async function createImage({
+  artist,
+  has_animation,
+  has_border,
+  has_no_border,
+  id,
+  slug,
+  tagTitles,
+  title
+}: CreateOrUpdateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
   
     const image = new Image()
+    image.artist = artist
+    image.has_animation = has_animation
+    image.has_border = has_border
+    image.has_no_border = has_no_border
     image.id = id
-    image.slug = slug
+    image.slug = slug || null
     image.title = title
   
     const tags = await findOrCreateTags(tagTitles)
@@ -51,14 +68,16 @@ export async function createImage({ id, slug, tagTitles, title }: CreateImage) {
   }
 }
 
-type UpdateImage = {
-  id: number
-  slug: string | null
-  tagTitles: string[]
-  title: string | null
-}
-
-export async function updateImage({ id, tagTitles, title }: UpdateImage) {  
+export async function updateImage({
+  artist,
+  has_animation,
+  has_border,
+  has_no_border,
+  id,
+  slug,
+  tagTitles,
+  title  
+}: CreateOrUpdateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const oldImage = await getImageById(id)
@@ -66,7 +85,12 @@ export async function updateImage({ id, tagTitles, title }: UpdateImage) {
     if (!oldImage) {
       throw new Error(`No image found for the id ${id}`)
     }
-  
+    
+    oldImage.artist = artist
+    oldImage.has_animation = has_animation
+    oldImage.has_border = has_border
+    oldImage.has_no_border = has_no_border
+    oldImage.slug = slug || null
     oldImage.title = title
 
     // delete existing many-to-many tags for the image before continuing
@@ -133,12 +157,11 @@ export async function searchImages({ page }: SearchImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const images = await imageRepo.find({
-      select: {
-        id: true,
-        title: true
-      },
       ...getPaginationQueryParams(page),
-      relations: ['tags']
+      relations: ['tags'],
+      order: {
+        updated_at: 'DESC'
+      }
     })
   
     return images
@@ -163,7 +186,10 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
       },
       ...getPaginationQueryParams(page),
       relations: ['tags'],
-      relationLoadStrategy: 'query'
+      relationLoadStrategy: 'query',
+      order: {
+        updated_at: 'DESC'
+      }
     })
   
     return images

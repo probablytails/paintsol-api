@@ -34,17 +34,13 @@ const getUploadImageFileName = (imageType: ImageType) => {
     return 'border'
   } else if (imageType === 'no-border') {
     return 'no-border'
-  } else if (imageType === 'video') {
-    return 'video'
   }
 }
 
 const getUploadImageFileExtension = (imageType: ImageType) => {
   if (imageType === 'animation') {
-    return '.gif'
+    return 'gif'
   } else if (imageType === 'border' || imageType === 'no-border') {
-    return '.png'
-  } else if (imageType === 'video') {
-    return '.mp4'
+    return 'png'
   }
 }

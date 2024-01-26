@@ -13,14 +13,16 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE public.image (
     id INTEGER PRIMARY KEY,
     title VARCHAR(256),
+    artist VARCHAR(256),
     has_animation BOOLEAN DEFAULT false,
     has_border BOOLEAN DEFAULT false,
     has_no_border BOOLEAN DEFAULT false,
-    has_video BOOLEAN DEFAULT false,
-    slug VARCHAR(256) UNIQUE NOT NULL CHECK (slug = LOWER(slug)),
+    slug VARCHAR(256) CHECK (slug = LOWER(slug)),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX unique_slug_or_null ON public.image (slug) WHERE slug IS NOT NULL;
 
 -- Assign the updated_at trigger to the Image table
 

@@ -8,13 +8,13 @@ const multer = require('multer')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { deleteImage, getImageById, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
+import { deleteImage, getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
 import { getAllTags } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { parsePageQuery } from './middleware/parsePageQuery'
-import { parsePathIntId } from './middleware/parsePathIntId'
-import { ImageUploadRequest, PageRequest, PathIntIdRequest } from './types'
+import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
+import { ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 
 const port = 4321
@@ -58,20 +58,6 @@ const startApp = async () => {
       }
     })
 
-  app.get('/images',
-    parsePageQuery,
-    async function (req: PageRequest, res: Response) {
-      try {
-        const { page } = req.locals
-        const data = await searchImages({ page })
-        res.status(200)
-        res.send(data)
-      } catch (error) {
-        res.status(400)
-        res.send({ message: error.message })
-      }
-    })
-
   app.get('/images/by-tag',
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
@@ -86,12 +72,33 @@ const startApp = async () => {
       }
     })
 
-  app.get('/image/:id',
-    parsePathIntId,
-    async function (req: PathIntIdRequest, res: Response) {
+  app.get('/images',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
       try {
-        const { id } = req.locals
-        const data = await getImageById(id)
+        const { page } = req.locals
+        const data = await searchImages({ page })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/image/:id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId, slug } = req.locals
+        
+        let data = null
+        if (intId) {
+          data = await getImageById(intId)
+        } else if (slug) {
+          data = await getImageBySlug(slug)
+        }
+
         if (!data) {
           res.status(404)
           res.send({ message: 'Image not found' })
@@ -107,11 +114,11 @@ const startApp = async () => {
 
   app.delete('/image/:id',
     requiresAuth(),
-    parsePathIntId,
-    async function (req: PathIntIdRequest, res: Response) {
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
-        const { id } = req.locals
-        await deleteImage(id)
+        const { intId } = req.locals
+        await deleteImage(intId)
         res.status(201)
         res.send({ message: 'Image successfully deleted' })
       } catch (error) {
@@ -125,9 +132,10 @@ const startApp = async () => {
     imageUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
       try {
+        const isUpdating = false
         const id = await getImageMaxId()
         const nextId = id + 1
-        const data = await imagesUploadHandler(req, nextId)
+        const data = await imagesUploadHandler(req, nextId, isUpdating)
         res.status(201)
         res.send(data)
       } catch (error) {
@@ -145,7 +153,8 @@ const startApp = async () => {
         const { id } = req.body
         const parsedId = parseInt(id)
         if (parsedId > 1) {
-          const data = await imagesUploadHandler(req, id)
+          const isUpdating = true
+          const data = await imagesUploadHandler(req, id, isUpdating)
           res.status(201)
           res.send(data)
         } else {

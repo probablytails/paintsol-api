@@ -8,6 +8,13 @@ export class Image {
   @PrimaryColumn()
   id: number
 
+  @Column({
+    type: 'varchar',
+    length: 256,
+    nullable: true
+  })
+  artist: string | null
+
   @Column({ type: 'boolean', default: false })
   has_animation: boolean
   
@@ -16,9 +23,6 @@ export class Image {
   
   @Column({ type: 'boolean', default: false })
   has_no_border: boolean
-  
-  @Column({ type: 'boolean', default: false })
-  has_video: boolean
 
   @Column({
     type: 'varchar',

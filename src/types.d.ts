@@ -7,9 +7,10 @@ export interface PageRequest extends Request {
   }
 }
 
-export interface PathIntIdRequest extends Request {
+export interface PathIntIdOrSlugRequest extends Request {
   locals: {
-    id: number
+    intId?: number
+    slug?: string
   }
 }
 
@@ -18,8 +19,7 @@ export interface ImageUploadRequest extends Request {
     fileImageAnimations: Express.Multer.File[]
     fileImageBorders: Express.Multer.File[]
     fileImageNoBorders: Express.Multer.File[]
-    fileImageVideos: Express.Multer.File[]
   }
 }
 
-export type ImageType = 'animation' | 'border' | 'no-border' | 'video'
+export type ImageType = 'animation' | 'border' | 'no-border'
