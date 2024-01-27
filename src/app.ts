@@ -29,7 +29,7 @@ const startApp = async () => {
   app.use(express.json())
 
   const corsOptions = {
-    origin: config.web.baseUrl,
+    origin: '*',
     credentials: true
   }
   app.use(cors(corsOptions))
