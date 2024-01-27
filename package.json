@@ -1,5 +1,5 @@
 {
-  "name": "mspaintsol-api",
+  "name": "paintsol-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/probablytails/mspaintsol-api.git"
+    "url": "git+https://github.com/probablytails/paintsol-api.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/probablytails/mspaintsol-api/issues"
+    "url": "https://github.com/probablytails/paintsol-api/issues"
   },
-  "homepage": "https://github.com/probablytails/mspaintsol-api#readme",
+  "homepage": "https://github.com/probablytails/paintsol-api#readme",
   "eslintIgnore": [
     "./src/app.js"
   ],
