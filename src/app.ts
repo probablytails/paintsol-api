@@ -26,7 +26,9 @@ const startApp = async () => {
   const imageUpload = multer({ storage: multerStorage })
 
   const app = express()
-  app.use(express.json())
+  app.use(express.json({
+    limit: '25mb'
+  }))
 
   const corsOptions = {
     origin: [config.web.baseUrl,config.auth0.baseURL],
