@@ -26,7 +26,7 @@ export async function getImageMaxId() {
   }
 }
 
-export async function getImageNextId(currentId: number) {
+export async function getImageNext(currentId: number) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const imageNext = await imageRepo.find({
@@ -40,7 +40,7 @@ export async function getImageNextId(currentId: number) {
     })
 
     if (imageNext[0]) {
-      return imageNext[0].id
+      return imageNext[0]
     } else {
       return null
     }
@@ -49,7 +49,7 @@ export async function getImageNextId(currentId: number) {
   }
 }
 
-export async function getImagePrevId(currentId: number) {
+export async function getImagePrev(currentId: number) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const imagePrev = await imageRepo.find({
@@ -63,7 +63,7 @@ export async function getImagePrevId(currentId: number) {
     })
 
     if (imagePrev[0]) {
-      return imagePrev[0].id
+      return imagePrev[0]
     } else {
       return null
     }
@@ -179,10 +179,10 @@ export async function getImageById(id: number) {
     })
 
     if (image) {
-      const prevId = await getImagePrevId(image.id)
-      const nextId = await getImageNextId(image.id)
-      image.prevId = prevId
-      image.nextId = nextId
+      const prevData = await getImagePrev(image.id)
+      const nextData = await getImageNext(image.id)
+      image.prevData = prevData
+      image.nextData = nextData
     }
 
     return image
@@ -203,10 +203,10 @@ export async function getImageBySlug(slug: string) {
     })
 
     if (image) {
-      const prevId = await getImagePrevId(image.id)
-      const nextId = await getImageNextId(image.id)
-      image.prevId = prevId
-      image.nextId = nextId
+      const prevData = await getImagePrev(image.id)
+      const nextData = await getImageNext(image.id)
+      image.prevData = prevData
+      image.nextData = nextData
     }
     
     return image
