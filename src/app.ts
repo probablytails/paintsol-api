@@ -27,10 +27,10 @@ const startApp = async () => {
 
   const app = express()
   app.use(express.json({
-    limit: '25mb'
+    limit: '50mb'
   }))
   app.use(express.urlencoded({
-    limit: '25mb',
+    limit: '50mb',
     extended: true
   }))
 
