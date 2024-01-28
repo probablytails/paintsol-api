@@ -3,6 +3,8 @@ import { config } from '../lib/config'
 import { Image } from '../models/image'
 import { ImageTag } from '../models/imageTag'
 import { Tag } from '../models/tag'
+import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
+import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
 
 const appDataSource = new DataSource({
   type: 'postgres',
@@ -12,7 +14,13 @@ const appDataSource = new DataSource({
   username: config.db.username,
   password: config.db.password,
   synchronize: false,
-  entities: [Image, Tag, ImageTag]
+  entities: [
+    Image,
+    Tag,
+    ImageTag,
+    ImageCountMaterializedView,
+    TagCountMaterializedView
+  ]
 })
 
 export const initAppDataSource = () => {

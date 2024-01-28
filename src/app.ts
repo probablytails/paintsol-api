@@ -4,6 +4,8 @@ require('dotenv').config()
 const cors = require('cors')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const multer = require('multer')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cron = require('node-cron')
 
 import * as express from 'express'
 import { Request, Response } from 'express'
@@ -16,11 +18,18 @@ import { parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
 import { ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
+import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
+import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
 
 const port = 4321
 
 const startApp = async () => {
   await initAppDataSource()
+
+  cron.schedule('*/5 * * * *', async () => {
+    await refreshImageMaterializedView()
+    await refreshTagMaterializedView()
+  })
 
   const multerStorage = multer.memoryStorage()
   const imageUpload = multer({ storage: multerStorage })
@@ -72,6 +81,18 @@ const startApp = async () => {
         const data = await getImagesByTagId({ tagId, page })
         res.status(200)
         res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/images/count',
+    async function (req: Request, res: Response) {
+      try {
+        const data = await queryImageCountMaterializedView()
+        res.status(200)
+        res.send({ image_count: data })
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
@@ -150,7 +171,6 @@ const startApp = async () => {
         res.status(201)
         res.send(data)
       } catch (error) {
-        console.log('error', error.message)
         res.status(400)
         res.send({ message: error.message })
       }
@@ -187,6 +207,18 @@ const startApp = async () => {
       res.send({ message: error.message })
     }
   })
+
+  app.get('/tags/count',
+    async function (req: Request, res: Response) {
+      try {
+        const data = await queryTagCountMaterializedView()
+        res.status(200)
+        res.send({ tag_count: data })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
 
   app.listen(port)
 
