@@ -2,6 +2,8 @@
 
 dist/
 
+.vscode-server
+
 # dependencies
 /node_modules
 /.pnp
