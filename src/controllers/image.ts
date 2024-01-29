@@ -226,7 +226,7 @@ export async function searchImages({ page }: SearchImage) {
       ...getPaginationQueryParams(page),
       relations: ['tags'],
       order: {
-        updated_at: 'DESC'
+        created_at: 'DESC'
       }
     })
   
@@ -254,7 +254,7 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
       relations: ['tags'],
       relationLoadStrategy: 'query',
       order: {
-        updated_at: 'DESC'
+        created_at: 'DESC'
       }
     })
   
