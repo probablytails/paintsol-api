@@ -41,7 +41,7 @@ export async function getAllTagsWithImages() {
   const tagsRepo = appDataSource.getRepository(Tag)
   const tagsWithImages = await tagsRepo
     .createQueryBuilder('tag')
-    .innerJoin('tag.images', 'imageTag') // Assuming you have a relation named "images" in your Tag entity
+    .innerJoin('tag.images', 'imageTag')
     .getMany()
 
   return tagsWithImages
