@@ -47,11 +47,7 @@ export async function getAllTagsWithImages() {
   return tagsWithImages
 }
 
-type GetTagById = {
-  id: number
-}
-
-export async function getTagById({ id }: GetTagById) {
+export async function getTagById(id: number) {
   const tagsRepo = appDataSource.getRepository(Tag)
   const tag = await tagsRepo.findOne({
     where: {

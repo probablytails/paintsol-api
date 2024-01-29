@@ -243,7 +243,7 @@ type SearchImagesByTagId = {
 
 export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
   try {
-    const tag = await getTagById({ id: tagId })
+    const tag = await getTagById(tagId)
 
     const imageRepo = appDataSource.getRepository(Image)
     const images = await imageRepo.find({

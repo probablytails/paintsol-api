@@ -11,7 +11,7 @@ import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
-import { getAllTags, getAllTagsWithImages } from './controllers/tag'
+import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { parsePageQuery } from './middleware/parsePageQuery'
@@ -226,6 +226,20 @@ const startApp = async () => {
         const data = await queryTagCountMaterializedView()
         res.status(200)
         res.send({ tag_count: data })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/tag/:id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId } = req.locals
+        const tag = await getTagById(intId)
+        res.status(200)
+        res.send(tag)
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
