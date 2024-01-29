@@ -5,6 +5,7 @@ import { getPaginationQueryParams } from '../lib/pagination'
 import { Image } from '../models/image'
 import { findOrCreateTags, getTagById } from './tag'
 import { ImageTag } from '../models/imageTag'
+import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 
 export async function getImageMaxId() {
   try {
@@ -219,9 +220,10 @@ type SearchImage = {
   page: number
 }
 
-export async function searchImages({ page }: SearchImage) {
+export async function getImages({ page }: SearchImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
+    const allImagesCount = await queryImageCountMaterializedView()
     const images = await imageRepo.find({
       ...getPaginationQueryParams(page),
       relations: ['tags'],
@@ -230,7 +232,7 @@ export async function searchImages({ page }: SearchImage) {
       }
     })
   
-    return images
+    return [images, allImagesCount]
   } catch (error: unknown) {
     handleError(error)
   }
@@ -246,7 +248,7 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
     const tag = await getTagById(tagId)
 
     const imageRepo = appDataSource.getRepository(Image)
-    const images = await imageRepo.find({
+    const data = await imageRepo.findAndCount({
       where: {
         tags: tag
       },
@@ -258,7 +260,7 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
       }
     })
   
-    return images
+    return data
   } catch (error: unknown) {
     handleError(error)
   }

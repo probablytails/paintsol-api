@@ -10,7 +10,7 @@ const cron = require('node-cron')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
+import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, getImages } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
@@ -104,7 +104,7 @@ const startApp = async () => {
     async function (req: PageRequest, res: Response) {
       try {
         const { page } = req.locals
-        const data = await searchImages({ page })
+        const data = await getImages({ page })
         res.status(200)
         res.send(data)
       } catch (error) {
