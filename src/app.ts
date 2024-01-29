@@ -10,7 +10,9 @@ const cron = require('node-cron')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, getImages } from './controllers/image'
+import { getAllArtists, getAllArtistsWithImages, getArtistById } from './controllers/artist'
+import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
+  getImagesByTagId, getImages } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
@@ -18,6 +20,7 @@ import { parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
 import { ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
+import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from './controllers/artistCountMaterializedView'
 import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
 import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
 
@@ -29,6 +32,7 @@ const startApp = async () => {
   cron.schedule('*/5 * * * *', async () => {
     await refreshImageMaterializedView()
     await refreshTagMaterializedView()
+    await refreshArtistMaterializedView()
   })
 
   const multerStorage = multer.memoryStorage()
@@ -70,6 +74,69 @@ const startApp = async () => {
       } else {
         res.status(401)
         res.send()
+      }
+    })
+
+  app.get('/artist/:id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId } = req.locals
+        const artist = await getArtistById(intId)
+        res.status(200)
+        res.send(artist)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/artists/all-with-images',
+    async function (req: Request, res: Response) {
+      try {
+        const data = await getAllArtistsWithImages()
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/artists/all', async function (req: Request, res: Response) {
+    try {
+      const data = await getAllArtists()
+      res.status(200)
+      res.send(data)
+    } catch (error) {
+      res.status(400)
+      res.send({ message: error.message })
+    }
+  })
+
+  app.get('/artists/count',
+    async function (req: Request, res: Response) {
+      try {
+        const data = await queryArtistCountMaterializedView()
+        res.status(200)
+        res.send({ artist_count: data })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/images/by-artist',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { id: artistId, page } = req.locals
+        const data = await getImagesByArtistId({ artistId, page })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
       }
     })
 
@@ -197,16 +264,31 @@ const startApp = async () => {
       }
     })
 
-  app.get('/tags/all-with-images', async function (req: Request, res: Response) {
-    try {
-      const data = await getAllTagsWithImages()
-      res.status(200)
-      res.send(data)
-    } catch (error) {
-      res.status(400)
-      res.send({ message: error.message })
-    }
-  })
+  app.get('/tag/:id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId } = req.locals
+        const tag = await getTagById(intId)
+        res.status(200)
+        res.send(tag)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/tags/all-with-images',
+    async function (req: Request, res: Response) {
+      try {
+        const data = await getAllTagsWithImages()
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
   
 
   app.get('/tags/all', async function (req: Request, res: Response) {
@@ -226,20 +308,6 @@ const startApp = async () => {
         const data = await queryTagCountMaterializedView()
         res.status(200)
         res.send({ tag_count: data })
-      } catch (error) {
-        res.status(400)
-        res.send({ message: error.message })
-      }
-    })
-
-  app.get('/tag/:id',
-    parsePathIntIdOrSlug,
-    async function (req: PathIntIdOrSlugRequest, res: Response) {
-      try {
-        const { intId } = req.locals
-        const tag = await getTagById(intId)
-        res.status(200)
-        res.send(tag)
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

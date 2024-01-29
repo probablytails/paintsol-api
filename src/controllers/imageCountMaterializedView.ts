@@ -1,11 +1,12 @@
 import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
 import appDataSource from '../db'
+import { handleLogError } from '../lib/errors'
 
 export async function refreshImageMaterializedView() {
   try {
     await appDataSource.manager.query('REFRESH MATERIALIZED VIEW image_count_materialized_view')
   } catch (error) {
-    console.log('refreshImageMaterializedView error:', error)
+    handleLogError(`refreshImageMaterializedView error: ${error}`)
   }
 }
 
@@ -17,6 +18,6 @@ export async function queryImageCountMaterializedView() {
       .getOne()
     return result?.image_count ? result.image_count : 0
   } catch (error) {
-    console.log('queryImageCountMaterializedView error:', error)
+    handleLogError(`queryImageCountMaterializedView error: ${error}`)
   }
 }

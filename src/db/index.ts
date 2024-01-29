@@ -1,10 +1,12 @@
 import { DataSource } from 'typeorm'
 import { config } from '../lib/config'
+import { Artist } from '../models/artist'
 import { Image } from '../models/image'
+import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
 import { ImageTag } from '../models/imageTag'
 import { Tag } from '../models/tag'
-import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
 import { TagCountMaterializedView } from '../models/tagCountMaterializedView'
+import { ImageArtist } from '../models/imageArtist'
 
 const appDataSource = new DataSource({
   type: 'postgres',
@@ -15,10 +17,12 @@ const appDataSource = new DataSource({
   password: config.db.password,
   synchronize: false,
   entities: [
+    Artist,
     Image,
-    Tag,
-    ImageTag,
+    ImageArtist,
     ImageCountMaterializedView,
+    ImageTag,
+    Tag,
     TagCountMaterializedView
   ]
 })

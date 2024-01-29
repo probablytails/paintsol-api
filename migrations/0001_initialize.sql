@@ -52,4 +52,3 @@ CREATE TABLE public.image_tag (
     tag_id INTEGER REFERENCES public.tag(id) ON DELETE CASCADE,
     PRIMARY KEY (image_id, tag_id)
 );
-

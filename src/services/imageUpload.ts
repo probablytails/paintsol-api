@@ -1,4 +1,5 @@
 import { createImage, deleteImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
+import { handleLogError } from '../lib/errors'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 
@@ -55,7 +56,7 @@ const checkFileTypes = ({
 }
 
 type ImageUpload = {
-  artist: string | null
+  artistNames: string[]
   fileImageAnimation: Express.Multer.File
   fileImageBorder: Express.Multer.File
   fileImageNoBorder: Express.Multer.File
@@ -73,7 +74,7 @@ type ImageUpload = {
 }
 
 type ImageData = {
-  artist: string | null
+  artistNames: string[]
   has_animation: boolean
   has_border: boolean
   has_no_border: boolean
@@ -84,7 +85,7 @@ type ImageData = {
 }
 
 const imagesUpload = async ({
-  artist,
+  artistNames,
   fileImageAnimation,
   fileImageBorder,
   fileImageNoBorder,
@@ -102,7 +103,7 @@ const imagesUpload = async ({
 }: ImageUpload) => {
   checkFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder })
   const imageData: ImageData = {
-    artist,
+    artistNames,
     has_animation,
     has_border,
     has_no_border,
@@ -161,7 +162,7 @@ const imagesUpload = async ({
     const image = await getImageById(id)
     imageExists = !!image
   } catch (error) {
-    console.log('error getImageById:', error)
+    handleLogError(`error getImageById: ${error}`)
   }
 
   if (!imageExists) {
@@ -172,7 +173,7 @@ const imagesUpload = async ({
 }
 
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
-  const { artist, has_animation, has_border, has_no_border, remove_animation, remove_border,
+  const { artistNames, has_animation, has_border, has_no_border, remove_animation, remove_border,
     remove_no_border, slug, tagTitles = [], title } = req.body
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
 
@@ -180,10 +181,11 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
   const fileImageBorder = fileImageBorders?.[0]
   const fileImageNoBorder = fileImageNoBorders?.[0]
 
+  const parsedArtistNames = JSON.parse(artistNames)
   const parsedTagTitles = JSON.parse(tagTitles)
 
   const data = await imagesUpload({
-    artist,
+    artistNames: parsedArtistNames,
     fileImageAnimation,
     fileImageBorder,
     fileImageNoBorder,

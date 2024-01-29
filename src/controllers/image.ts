@@ -1,9 +1,11 @@
 import { Equal, LessThan, MoreThan } from 'typeorm'
 import appDataSource from '../db'
-import { handleError } from '../lib/errors'
+import { handleThrowError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'
 import { Image } from '../models/image'
+import { findOrCreateArtists, getArtistById } from './artist'
 import { findOrCreateTags, getTagById } from './tag'
+import { ImageArtist } from '../models/imageArtist'
 import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 
@@ -23,7 +25,7 @@ export async function getImageMaxId() {
       return 0
     }
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -46,7 +48,7 @@ export async function getImageNext(currentId: number) {
       return null
     }
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -69,23 +71,23 @@ export async function getImagePrev(currentId: number) {
       return null
     }
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
 type CreateOrUpdateImage = {
-  artist: string | null
-  id: number
+  artistNames: string[]
   has_animation: boolean
   has_border: boolean
   has_no_border: boolean
+  id: number
   slug: string | null
   tagTitles: string[]
   title: string | null
 }
 
 export async function createImage({
-  artist,
+  artistNames,
   has_animation,
   has_border,
   has_no_border,
@@ -98,7 +100,6 @@ export async function createImage({
     const imageRepo = appDataSource.getRepository(Image)
   
     const image = new Image()
-    image.artist = artist
     image.has_animation = has_animation
     image.has_border = has_border
     image.has_no_border = has_no_border
@@ -109,14 +110,17 @@ export async function createImage({
     const tags = await findOrCreateTags(tagTitles)
     image.tags = tags
 
+    const artists = await findOrCreateArtists(artistNames)
+    image.artists = artists
+
     return imageRepo.save(image)
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
 export async function updateImage({
-  artist,
+  artistNames,
   has_animation,
   has_border,
   has_no_border,
@@ -133,7 +137,6 @@ export async function updateImage({
       throw new Error(`No image found for the id ${id}`)
     }
     
-    oldImage.artist = artist
     oldImage.has_animation = has_animation
     oldImage.has_border = has_border
     oldImage.has_no_border = has_no_border
@@ -148,9 +151,17 @@ export async function updateImage({
     const tags = await findOrCreateTags(tagTitles)
     oldImage.tags = tags
 
+    // delete existing many-to-many artists for the image before continuing
+    const imageArtistRepo = appDataSource.getRepository(ImageArtist)
+    const imageArtists = await imageArtistRepo.find({ where: { image_id: oldImage.id }})
+    await imageArtistRepo.remove(imageArtists)
+
+    const artists = await findOrCreateArtists(artistNames)
+    oldImage.artists = artists
+
     return imageRepo.save(oldImage)
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -164,7 +175,7 @@ export async function deleteImage(id: number) {
       throw new Error('Could not delete because an image with that id does not exist')
     }
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -176,7 +187,7 @@ export async function getImageById(id: number) {
       where: {
         id: Equal(id)
       },
-      relations: ['tags']
+      relations: ['tags', 'artists']
     })
 
     if (image) {
@@ -188,7 +199,7 @@ export async function getImageById(id: number) {
 
     return image
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -200,7 +211,7 @@ export async function getImageBySlug(slug: string) {
       where: {
         slug: Equal(slug)
       },
-      relations: ['tags']
+      relations: ['tags', 'artists']
     })
 
     if (image) {
@@ -212,7 +223,7 @@ export async function getImageBySlug(slug: string) {
     
     return image
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }
 
@@ -226,7 +237,7 @@ export async function getImages({ page }: SearchImage) {
     const allImagesCount = await queryImageCountMaterializedView()
     const images = await imageRepo.find({
       ...getPaginationQueryParams(page),
-      relations: ['tags'],
+      relations: ['artists', 'tags'],
       order: {
         created_at: 'DESC'
       }
@@ -234,7 +245,35 @@ export async function getImages({ page }: SearchImage) {
   
     return [images, allImagesCount]
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
+  }
+}
+
+type SearchImagesByArtistId = {
+  artistId: number
+  page: number
+}
+
+export async function getImagesByArtistId({ page, artistId }: SearchImagesByArtistId) {
+  try {
+    const artist = await getArtistById(artistId)
+
+    const imageRepo = appDataSource.getRepository(Image)
+    const data = await imageRepo.findAndCount({
+      where: {
+        artists: artist
+      },
+      ...getPaginationQueryParams(page),
+      relations: ['artists', 'tags'],
+      relationLoadStrategy: 'query',
+      order: {
+        created_at: 'DESC'
+      }
+    })
+  
+    return data
+  } catch (error: unknown) {
+    handleThrowError(error)
   }
 }
 
@@ -253,7 +292,7 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
         tags: tag
       },
       ...getPaginationQueryParams(page),
-      relations: ['tags'],
+      relations: ['artists', 'tags'],
       relationLoadStrategy: 'query',
       order: {
         created_at: 'DESC'
@@ -262,6 +301,6 @@ export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
   
     return data
   } catch (error: unknown) {
-    handleError(error)
+    handleThrowError(error)
   }
 }

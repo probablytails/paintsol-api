@@ -1,19 +1,13 @@
 /* eslint-disable indent */
 import { Entity, Column, CreateDateColumn,
   UpdateDateColumn, ManyToMany, JoinTable, PrimaryColumn } from 'typeorm'
+import { Artist } from './artist'
 import { Tag } from './tag'
 
 @Entity('image', { schema: 'public' })
 export class Image {
   @PrimaryColumn()
   id: number
-
-  @Column({
-    type: 'varchar',
-    length: 256,
-    nullable: true
-  })
-  artist: string | null
 
   @Column({ type: 'boolean', default: false })
   has_animation: boolean
@@ -37,6 +31,14 @@ export class Image {
     nullable: true
   })
   title: string | null
+
+  @ManyToMany(() => Artist, { cascade: true })
+  @JoinTable({
+    name: 'image_artist',
+    joinColumn: { name: 'image_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'artist_id', referencedColumnName: 'id' }
+  })
+  artists: Artist[]
 
   @ManyToMany(() => Tag, { cascade: true })
   @JoinTable({
