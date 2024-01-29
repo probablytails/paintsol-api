@@ -11,7 +11,7 @@ import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByTagId, searchImages } from './controllers/image'
-import { getAllTags } from './controllers/tag'
+import { getAllTags, getAllTagsWithImages } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { parsePageQuery } from './middleware/parsePageQuery'
@@ -196,6 +196,18 @@ const startApp = async () => {
         res.send({ message: error.message })
       }
     })
+
+  app.get('/tags/all-with-images', async function (req: Request, res: Response) {
+    try {
+      const data = await getAllTagsWithImages()
+      res.status(200)
+      res.send(data)
+    } catch (error) {
+      res.status(400)
+      res.send({ message: error.message })
+    }
+  })
+  
 
   app.get('/tags/all', async function (req: Request, res: Response) {
     try {
