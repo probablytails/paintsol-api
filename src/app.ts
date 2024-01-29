@@ -145,7 +145,7 @@ const startApp = async () => {
     tried to use the DELETE request method.
   */
   app.post('/image/delete/:id',
-    // requiresAuth(),
+    requiresAuth(),
     parsePathIntIdOrSlug,
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
