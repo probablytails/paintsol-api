@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm'
 import { config } from '../lib/config'
 import { Artist } from '../models/artist'
+import { ArtistCountMaterializedView } from '../models/artistCountMaterializedView'
 import { Image } from '../models/image'
 import { ImageCountMaterializedView } from '../models/imageCountMaterializedView'
 import { ImageTag } from '../models/imageTag'
@@ -18,6 +19,7 @@ const appDataSource = new DataSource({
   synchronize: false,
   entities: [
     Artist,
+    ArtistCountMaterializedView,
     Image,
     ImageArtist,
     ImageCountMaterializedView,
