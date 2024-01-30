@@ -226,24 +226,7 @@ const startApp = async () => {
       }
     })
 
-  app.post('/image',
-    requiresAuth(),
-    imageUpload.fields(imageUploadFields),
-    async function (req: ImageUploadRequest, res: Response) {
-      try {
-        const isUpdating = false
-        const id = await getImageMaxId()
-        const nextId = id + 1
-        const data = await imagesUploadHandler(req, nextId, isUpdating)
-        res.status(201)
-        res.send(data)
-      } catch (error) {
-        res.status(400)
-        res.send({ message: error.message })
-      }
-    })
-
-  app.patch('/image',
+  app.post('/image/update',
     requiresAuth(),
     imageUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
@@ -258,6 +241,23 @@ const startApp = async () => {
         } else {
           throw new Error(`Invalid id provided: ${id}`)
         }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/image',
+    requiresAuth(),
+    imageUpload.fields(imageUploadFields),
+    async function (req: ImageUploadRequest, res: Response) {
+      try {
+        const isUpdating = false
+        const id = await getImageMaxId()
+        const nextId = id + 1
+        const data = await imagesUploadHandler(req, nextId, isUpdating)
+        res.status(201)
+        res.send(data)
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
