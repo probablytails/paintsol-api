@@ -47,13 +47,15 @@ const getUploadImageFileName = (imageType: ImageType) => {
     return 'border'
   } else if (imageType === 'no-border') {
     return 'no-border'
+  } else if (imageType === 'preview') {
+    return 'preview'
   }
 }
 
 const getUploadImageFileExtension = (imageType: ImageType) => {
   if (imageType === 'animation') {
     return 'gif'
-  } else if (imageType === 'border' || imageType === 'no-border') {
+  } else if (imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {
     return 'png'
   }
 }

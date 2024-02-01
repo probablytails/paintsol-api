@@ -22,4 +22,4 @@ export interface ImageUploadRequest extends Request {
   }
 }
 
-export type ImageType = 'animation' | 'border' | 'no-border'
+export type ImageType = 'animation' | 'border' | 'no-border' | 'preview'

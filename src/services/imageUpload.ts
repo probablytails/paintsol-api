@@ -2,6 +2,7 @@ import { createImage, deleteImage, getImageById, getImageBySlug, updateImage } f
 import { handleLogError } from '../lib/errors'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
+import { createPreviewOverlayImage } from './imagePreview'
 
 export const imageUploadFields = [
   {
@@ -155,6 +156,11 @@ const imagesUpload = async ({
     } catch (error) {
       throw new Error(`error fileImageNoBorder uploadImageToS3: ${error.message}`)
     }
+  }
+
+  if (fileImageNoBorder) {
+    const previewImageFile = await createPreviewOverlayImage(fileImageNoBorder)
+    await uploadImageToS3(id, 'preview', previewImageFile)
   }
   
   let imageExists = false
