@@ -42,6 +42,8 @@ export async function getAllTagsWithImages() {
   const tagsWithImages = await tagsRepo
     .createQueryBuilder('tag')
     .innerJoin('tag.images', 'imageTag')
+    .groupBy('tag.id')
+    .orderBy('COUNT(imageTag.id)', 'DESC')
     .getMany()
 
   return tagsWithImages
