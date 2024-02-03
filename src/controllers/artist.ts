@@ -42,6 +42,8 @@ export async function getAllArtistsWithImages() {
   const artistsWithImages = await artistsRepo
     .createQueryBuilder('artist')
     .innerJoin('artist.images', 'imageArtist')
+    .groupBy('artist.id')
+    .orderBy('COUNT(imageArtist.id)', 'DESC')
     .getMany()
 
   return artistsWithImages
