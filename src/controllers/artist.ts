@@ -11,7 +11,7 @@ export async function findOrCreateArtists(names: FindOrCreateArtists) {
   for (const name of names) {
     let artist = await artistsRepo.findOne({
       where: {
-        name: ILike(`%${name}%`)
+        name: ILike(name)
       }
     })
     if (!artist) {
