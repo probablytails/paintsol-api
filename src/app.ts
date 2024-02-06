@@ -10,7 +10,7 @@ const cron = require('node-cron')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { getAllArtists, getAllArtistsWithImages, getArtistById } from './controllers/artist'
+import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug } from './controllers/artist'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
   getImagesByTagId, getImages } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
@@ -18,11 +18,12 @@ import { initAppDataSource } from './db'
 import { config } from './lib/config'
 import { parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
-import { ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
+import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
 import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from './controllers/artistCountMaterializedView'
 import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
 import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
+import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
 
 const port = 4321
 
@@ -36,7 +37,7 @@ const startApp = async () => {
   })
 
   const multerStorage = multer.memoryStorage()
-  const imageUpload = multer({ storage: multerStorage })
+  const multerUpload = multer({ storage: multerStorage })
 
   const app = express()
   app.use(express.json({
@@ -77,14 +78,46 @@ const startApp = async () => {
       }
     })
 
+  app.post('/artist/update',
+    requiresAuth(),
+    multerUpload.fields(artistUploadFields),
+    async function (req: ArtistUploadRequest, res: Response) {
+      try {
+        const { id } = req.body
+        const parsedId = parseInt(id)
+        if (parsedId === 1 || parsedId > 1) {
+          const data = await artistUploadHandler(req, id)
+          res.status(201)
+          res.send(data)
+        } else {
+          throw new Error(`Invalid id provided: ${id}`)
+        }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
   app.get('/artist/:id',
     parsePathIntIdOrSlug,
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
-        const { intId } = req.locals
-        const artist = await getArtistById(intId)
-        res.status(200)
-        res.send(artist)
+        const { intId, slug } = req.locals
+        
+        let data = null
+        if (intId) {
+          data = await getArtistById(intId)
+        } else if (slug) {
+          data = await getArtistBySlug(slug)
+        }
+
+        if (!data) {
+          res.status(404)
+          res.send({ message: 'Artist not found' })
+        } else {
+          res.status(200)
+          res.send(data)
+        }
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })
@@ -228,7 +261,7 @@ const startApp = async () => {
 
   app.post('/image/update',
     requiresAuth(),
-    imageUpload.fields(imageUploadFields),
+    multerUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
       try {
         const { id } = req.body
@@ -249,7 +282,7 @@ const startApp = async () => {
 
   app.post('/image',
     requiresAuth(),
-    imageUpload.fields(imageUploadFields),
+    multerUpload.fields(imageUploadFields),
     async function (req: ImageUploadRequest, res: Response) {
       try {
         const isUpdating = false

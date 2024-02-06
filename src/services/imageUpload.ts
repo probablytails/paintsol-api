@@ -1,5 +1,6 @@
 import { createImage, deleteImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
 import { handleLogError } from '../lib/errors'
+import { getFileExtension } from '../lib/fileExtensions'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 import { createPreviewOverlayImage } from './imagePreview'
@@ -19,23 +20,17 @@ export const imageUploadFields = [
   }
 ]
 
-type CheckFileTypes = {
-  fileImageAnimation: Express.Multer.File
-  fileImageBorder: Express.Multer.File
-  fileImageNoBorder: Express.Multer.File
+type CheckImageFileTypes = {
+  fileImageAnimation?: Express.Multer.File
+  fileImageBorder?: Express.Multer.File
+  fileImageNoBorder?: Express.Multer.File
 }
 
-const getFileExtension = (file: Express.Multer.File) => {
-  const originalFileName = file.originalname
-  const fileExtension = originalFileName?.split('.').pop()
-  return fileExtension
-}
-
-const checkFileTypes = ({
+const checkImageFileTypes = ({
   fileImageAnimation,
   fileImageBorder,
   fileImageNoBorder
-}: CheckFileTypes) => {
+}: CheckImageFileTypes) => {
   if (fileImageAnimation) {
     const ext = getFileExtension(fileImageAnimation)
     if (ext !== 'gif') {
@@ -102,7 +97,7 @@ const imagesUpload = async ({
   tagTitles,
   title
 }: ImageUpload) => {
-  checkFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder })
+  checkImageFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder })
   const imageData: ImageData = {
     artistNames,
     has_animation,

@@ -23,3 +23,11 @@ export interface ImageUploadRequest extends Request {
 }
 
 export type ImageType = 'animation' | 'border' | 'no-border' | 'preview'
+
+export type ArtistProfilePictureType = 'original' | 'preview'
+
+export interface ArtistUploadRequest extends Request {
+  files: {
+    fileArtistProfilePictures: Express.Multer.File[]
+  }
+}

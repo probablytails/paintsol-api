@@ -1,13 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { S3 } from 'aws-sdk'
 import { config } from '../lib/config'
-import { ImageType } from '../types'
+import { ArtistProfilePictureType, ImageType } from '../types'
 
 const s3 = new S3({
   accessKeyId: config.aws.accessKeyId,
   secretAccessKey: config.aws.secretAccessKey,
   region: config.aws.region
 })
+
+/* Images */
 
 export const deleteImageFromS3 = async (
   id: number,
@@ -55,7 +57,55 @@ const getUploadImageFileName = (imageType: ImageType) => {
 const getUploadImageFileExtension = (imageType: ImageType) => {
   if (imageType === 'animation') {
     return 'gif'
-  } else if (imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {
+  } else if (
+    imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {
+    return 'png'
+  }
+}
+
+/* Artists */
+
+export const deleteArtistProfilePictureFromS3 = async (
+  id: number,
+  artistProfilePictureType: ArtistProfilePictureType
+) => {
+  const key = `/artists/${id}-${getUploadArtistProfilePictureFileName(artistProfilePictureType)}.${getUploadArtistProfilePictureFileExtension(artistProfilePictureType)}`
+  const params = {
+    Bucket: config.aws.imageBucket,
+    Key: key // The key is the filename in the S3 bucket
+  }
+
+  return s3.deleteObject(params).promise()
+}
+
+export const uploadArtistProfilePictureToS3 = async (
+  id: number,
+  artistProfilePictureType: ArtistProfilePictureType,
+  file: Express.Multer.File
+) => {
+  const key = `artists/${id}-${getUploadArtistProfilePictureFileName(artistProfilePictureType)}.${getUploadArtistProfilePictureFileExtension(artistProfilePictureType)}`
+
+  const params: S3.PutObjectRequest = {
+    Bucket: config.aws.imageBucket,
+    Key: key, // The key is the filename in the S3 bucket
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  }
+
+  const uploadResult = await s3.upload(params).promise()
+  return uploadResult.Location // The URL of the uploaded file in S3
+}
+
+const getUploadArtistProfilePictureFileName = (artistProfilePictureType: ArtistProfilePictureType) => {
+  if (artistProfilePictureType === 'preview') {
+    return 'preview'
+  } else {
+    return 'original'
+  }
+}
+
+const getUploadArtistProfilePictureFileExtension = (artistProfilePictureType: ArtistProfilePictureType) => {
+  if (artistProfilePictureType === 'original' || artistProfilePictureType === 'preview') {
     return 'png'
   }
 }
