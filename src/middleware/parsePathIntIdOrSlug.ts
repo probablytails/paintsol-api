@@ -3,8 +3,7 @@ import { PathIntIdOrSlugRequest } from '../types'
 
 export const parsePathIntIdOrSlug = async (req: PathIntIdOrSlugRequest, res: Response, next: NextFunction) => {
   const { id } = req.params
-  const parsedId = parseInt(id)
-  
+  const parsedId = parseInt(id, 10)
   const oldLocals = req.locals || {}
   if (parsedId >= 1) {
     req.locals = {

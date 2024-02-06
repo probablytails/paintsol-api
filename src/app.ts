@@ -84,7 +84,7 @@ const startApp = async () => {
     async function (req: ArtistUploadRequest, res: Response) {
       try {
         const { id } = req.body
-        const parsedId = parseInt(id)
+        const parsedId = parseInt(id, 10)
         if (parsedId === 1 || parsedId > 1) {
           const data = await artistUploadHandler(req, id)
           res.status(201)
@@ -218,7 +218,6 @@ const startApp = async () => {
     async function (req: PathIntIdOrSlugRequest, res: Response) {
       try {
         const { intId, slug } = req.locals
-        
         let data = null
         if (intId) {
           data = await getImageById(intId)
@@ -265,7 +264,7 @@ const startApp = async () => {
     async function (req: ImageUploadRequest, res: Response) {
       try {
         const { id } = req.body
-        const parsedId = parseInt(id)
+        const parsedId = parseInt(id, 10)
         if (parsedId === 1 || parsedId > 1) {
           const isUpdating = true
           const data = await imagesUploadHandler(req, id, isUpdating)
