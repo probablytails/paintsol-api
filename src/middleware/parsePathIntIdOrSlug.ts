@@ -1,11 +1,13 @@
 import { NextFunction, Response } from 'express'
 import { PathIntIdOrSlugRequest } from '../types'
+import { checkIfValidInteger } from '../lib/validation'
 
 export const parsePathIntIdOrSlug = async (req: PathIntIdOrSlugRequest, res: Response, next: NextFunction) => {
   const { id } = req.params
-  const parsedId = parseInt(id, 10)
+  const isValidInteger = checkIfValidInteger(id)
   const oldLocals = req.locals || {}
-  if (parsedId >= 1) {
+  if (isValidInteger) {
+    const parsedId = parseInt(id, 10)
     req.locals = {
       ...oldLocals,
       intId: parsedId
