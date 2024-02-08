@@ -2,7 +2,7 @@ import { getArtistById, updateArtist } from '../controllers/artist'
 import { getFileExtension } from '../lib/fileExtensions'
 import { ArtistUploadRequest } from '../types'
 import { deleteArtistProfilePictureFromS3, uploadArtistProfilePictureToS3 } from './aws'
-import { createPreviewOverlayImage } from './imagePreview'
+import { createPreviewImage } from './imagePreview'
 
 export const artistUploadFields = [
   {
@@ -105,7 +105,7 @@ const artistUpload = async ({
   }
 
   if (fileArtistProfilePicture) {
-    const previewImageFile = await createPreviewOverlayImage(fileArtistProfilePicture)
+    const previewImageFile = await createPreviewImage(fileArtistProfilePicture)
     await uploadArtistProfilePictureToS3(id, 'preview', previewImageFile)
   }
 
