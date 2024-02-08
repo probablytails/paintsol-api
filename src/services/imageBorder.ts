@@ -154,7 +154,49 @@ export async function createBorderImage(borderlessImageFile: Express.Multer.File
         const paintImagePositionX = borderOffsets.left + imageMarginOffsets.left
         const paintImagePositionY = borderOffsets.top + imageMarginOffsets.top
 
-        // const resizePixels = 
+        // clockwise
+        const resizePixelItems = [
+          {
+            input: borderResizeWhiteBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left - 6,
+            top: borderOffsets.top + imageMarginOffsets.top - 6
+          },
+          {
+            input: borderResizeWhiteBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left + Math.ceil(resizedPaintImageWidth / 2),
+            top: borderOffsets.top + imageMarginOffsets.top - 6
+          },
+          {
+            input: borderResizeWhiteBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left + Math.ceil(resizedPaintImageWidth),
+            top: borderOffsets.top + imageMarginOffsets.top - 6
+          },
+          {
+            input: borderResizeBlueBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left + Math.ceil(resizedPaintImageWidth),
+            top: borderOffsets.top + imageMarginOffsets.top + Math.ceil(resizedPaintImageHeight / 2)
+          },
+          {
+            input: borderResizeBlueBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left + Math.ceil(resizedPaintImageWidth),
+            top: borderOffsets.top + imageMarginOffsets.top + Math.ceil(resizedPaintImageHeight)
+          },
+          {
+            input: borderResizeBlueBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left + Math.ceil(resizedPaintImageWidth / 2),
+            top: borderOffsets.top + imageMarginOffsets.top + Math.ceil(resizedPaintImageHeight)
+          },
+          {
+            input: borderResizeWhiteBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left - 6,
+            top: borderOffsets.top + imageMarginOffsets.top + Math.ceil(resizedPaintImageHeight)
+          },
+          {
+            input: borderResizeWhiteBuffer,
+            left: borderOffsets.left + imageMarginOffsets.left - 6,
+            top: borderOffsets.top + imageMarginOffsets.top + Math.ceil(resizedPaintImageHeight / 2)
+          }
+        ]
 
         const combinedImage = await canvas
           .composite([
@@ -163,7 +205,8 @@ export async function createBorderImage(borderlessImageFile: Express.Multer.File
               input: resizedPaintImageBuffer,
               left: paintImagePositionX,
               top: paintImagePositionY
-            }
+            },
+            ...resizePixelItems
           ])
 
         const finalImageBuffer = await combinedImage
