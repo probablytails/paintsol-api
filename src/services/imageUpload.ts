@@ -3,7 +3,8 @@ import { handleLogError } from '../lib/errors'
 import { getFileExtension } from '../lib/fileExtensions'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
-import { createPreviewOverlayImage } from './imagePreview'
+import { createBorderImage } from './imageBorder'
+import { createPreviewImage } from './imagePreview'
 
 export const imageUploadFields = [
   {
@@ -139,6 +140,10 @@ const imagesUpload = async ({
     } catch (error) {
       throw new Error(`error fileImageBorder uploadImageToS3: ${error.message}`)
     }
+  } else {
+    const borderImageFile = await createBorderImage(fileImageNoBorder)
+    await uploadImageToS3(id, 'border', borderImageFile)
+    imageData.has_border = true
   }
   
   if (remove_no_border) {
@@ -154,8 +159,10 @@ const imagesUpload = async ({
   }
 
   if (fileImageNoBorder) {
-    const previewImageFile = await createPreviewOverlayImage(fileImageNoBorder)
+    const previewImageFile = await createPreviewImage(fileImageNoBorder)
+    const borderImageFile = await createBorderImage(fileImageNoBorder)
     await uploadImageToS3(id, 'preview', previewImageFile)
+    await uploadImageToS3(id, 'border', borderImageFile)
   }
   
   let imageExists = false

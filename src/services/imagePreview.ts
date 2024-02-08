@@ -4,7 +4,7 @@ const sharp = require('sharp')
 import { readImageFile } from '../lib/fs'
 import { arrayBufferToExpressMulterFile } from '../lib/multer'
 
-const overlayImagePath = '../assets/preview_1-9by1-frame.png'
+const baseImagePath = '../assets/preview_1-9by1-frame.png'
 
 const overlayArea = {
   height: 418,
@@ -23,26 +23,26 @@ const maxAvailableArea = {
   width: overlayArea.width - overlayOffsets.left - overlayOffsets.right
 }
 
-export async function createPreviewOverlayImage(borderlessImageFile: Express.Multer.File) {
+export async function createPreviewImage(borderlessImageFile: Express.Multer.File) {
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {
-        const resizedBaseImage = await resizeForImagePreview(borderlessImageFile?.buffer)
-        const baseImage = sharp(resizedBaseImage)
+        const resizedPaintImage = await resizeForImagePreview(borderlessImageFile?.buffer)
+        const paintImage = sharp(resizedPaintImage)
 
-        const overlayImageBuffer = await readImageFile(overlayImagePath)
+        const baseImageBuffer = await readImageFile(baseImagePath)
 
-        const overlayImage = await sharp(overlayImageBuffer)
+        const baseImage = await sharp(baseImageBuffer)
           .flatten({
             background: { r: 192, g: 192, b: 192, alpha: 1 }
           })
-        const { width: baseWidth, height: baseHeight } = await baseImage.metadata()
+        const { width: baseWidth, height: baseHeight } = await paintImage.metadata()
     
         const positionX = overlayOffsets.left + Math.floor((maxAvailableArea.width - baseWidth) / 2)
         const positionY = overlayOffsets.top + Math.floor((maxAvailableArea.height - baseHeight) / 2)
 
-        const finalImageBuffer = await overlayImage
-          .composite([{ input: await baseImage.toBuffer(), left: positionX, top: positionY }])
+        const finalImageBuffer = await baseImage
+          .composite([{ input: await paintImage.toBuffer(), left: positionX, top: positionY }])
           .toBuffer()
 
         const finalImageFile = arrayBufferToExpressMulterFile(finalImageBuffer, 'temp-preview', 'image/png')
