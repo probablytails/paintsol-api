@@ -140,6 +140,10 @@ const imagesUpload = async ({
     } catch (error) {
       throw new Error(`error fileImageBorder uploadImageToS3: ${error.message}`)
     }
+  } else {
+    const borderImageFile = await createBorderImage(fileImageNoBorder)
+    await uploadImageToS3(id, 'border', borderImageFile)
+    imageData.has_border = true
   }
   
   if (remove_no_border) {
