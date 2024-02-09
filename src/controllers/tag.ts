@@ -11,11 +11,11 @@ export async function findOrCreateTags(titles: FindOrCreateTags) {
   for (const title of titles) {
     let tag = await tagsRepo.findOne({
       where: {
-        title: Equal(title)
+        title: Equal(title?.trim())
       }
     })
     if (!tag) {
-      tag = await tagsRepo.save({ title })
+      tag = await tagsRepo.save({ title: title?.trim() })
     }
     if (tag) {
       tags.push(tag)
