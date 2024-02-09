@@ -216,6 +216,7 @@ export async function createBorderImage(borderlessImageFile: Express.Multer.File
             width: canvasWidth,
             height: canvasHeight
           })
+          .png()
           .toBuffer()
 
         const finalImageFile = arrayBufferToExpressMulterFile(finalImageBuffer, 'temp-border', 'image/png')

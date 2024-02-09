@@ -43,6 +43,7 @@ export async function createPreviewImage(borderlessImageFile: Express.Multer.Fil
 
         const finalImageBuffer = await baseImage
           .composite([{ input: await paintImage.toBuffer(), left: positionX, top: positionY }])
+          .png()
           .toBuffer()
 
         const finalImageFile = arrayBufferToExpressMulterFile(finalImageBuffer, 'temp-preview', 'image/png')
