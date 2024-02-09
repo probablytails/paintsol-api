@@ -18,8 +18,8 @@ type CheckArtistProfilePictureFileTypes = {
 const checkArtistProfilePictureFileTypes = ({ fileArtistProfilePicture }: CheckArtistProfilePictureFileTypes) => {
   if (fileArtistProfilePicture) {
     const ext = getFileExtension(fileArtistProfilePicture)
-    if (ext !== 'png') {
-      throw new Error('Invalid image border file type. Expected a png file.')
+    if (ext !== 'png' && ext !== 'jpg') {
+      throw new Error('Invalid image border file type. Expected a png or jpg file.')
     }
   }
 }
