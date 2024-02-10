@@ -12,7 +12,7 @@ import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
 import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug } from './controllers/artist'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages } from './controllers/image'
+  getImagesByTagId, getImages, getImagesWithoutArtist } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
@@ -179,6 +179,20 @@ const startApp = async () => {
       try {
         const { id: tagId, page } = req.locals
         const data = await getImagesByTagId({ tagId, page })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/images/no-artist',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { page } = req.locals
+        const data = await getImagesWithoutArtist({ page })
         res.status(200)
         res.send(data)
       } catch (error) {

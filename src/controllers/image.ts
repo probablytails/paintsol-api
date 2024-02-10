@@ -277,6 +277,28 @@ export async function getImagesByArtistId({ page, artistId }: SearchImagesByArti
   }
 }
 
+type SearchImagesWithoutArtist = {
+  page: number
+}
+
+export async function getImagesWithoutArtist({ page }: SearchImagesWithoutArtist) {
+  try {
+    const imageRepo = appDataSource.getRepository(Image)
+    const { skip, take } = getPaginationQueryParams(page)
+    const data = await imageRepo.createQueryBuilder('image')
+      .leftJoinAndSelect('image.artists', 'artist')
+      .where('artist.id IS NULL')
+      .orderBy('image.created_at', 'DESC')
+      .skip(skip)
+      .take(take)
+      .getManyAndCount()
+  
+    return data
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}
+
 type SearchImagesByTagId = {
   tagId: number
   page: number
