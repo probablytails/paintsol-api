@@ -18,6 +18,10 @@ export const imageUploadFields = [
   {
     name: 'fileImageNoBorders',
     maxCount: 1
+  },
+  {
+    name: 'fileImageVideos',
+    maxCount: 1
   }
 ]
 
@@ -25,12 +29,14 @@ type CheckImageFileTypes = {
   fileImageAnimation?: Express.Multer.File
   fileImageBorder?: Express.Multer.File
   fileImageNoBorder?: Express.Multer.File
+  fileImageVideo?: Express.Multer.File
 }
 
 const checkImageFileTypes = ({
   fileImageAnimation,
   fileImageBorder,
-  fileImageNoBorder
+  fileImageNoBorder,
+  fileImageVideo
 }: CheckImageFileTypes) => {
   if (fileImageAnimation) {
     const ext = getFileExtension(fileImageAnimation)
@@ -50,6 +56,12 @@ const checkImageFileTypes = ({
       throw new Error('Invalid image no border file type. Expected a png or jpg file.')
     }
   }
+  if (fileImageVideo) {
+    const ext = getFileExtension(fileImageVideo)
+    if (ext !== 'mp4') {
+      throw new Error('Invalid video file type. Expected an mp4 file.')
+    }
+  }
 }
 
 type ImageUpload = {
@@ -57,14 +69,17 @@ type ImageUpload = {
   fileImageAnimation: Express.Multer.File
   fileImageBorder: Express.Multer.File
   fileImageNoBorder: Express.Multer.File
+  fileImageVideo: Express.Multer.File
   has_animation: boolean
   has_border: boolean
   has_no_border: boolean
+  has_video: boolean
   id: number | null
   isUpdating: boolean
   remove_animation: boolean
   remove_border: boolean
   remove_no_border: boolean
+  remove_video: boolean
   slug: string | null
   tagTitles: string[]
   title: string | null
@@ -75,6 +90,7 @@ type ImageData = {
   has_animation: boolean
   has_border: boolean
   has_no_border: boolean
+  has_video: boolean
   id: number
   slug: string | null
   tagTitles: string[]
@@ -86,24 +102,28 @@ const imagesUpload = async ({
   fileImageAnimation,
   fileImageBorder,
   fileImageNoBorder,
+  fileImageVideo,
   has_animation,
   has_border,
   has_no_border,
+  has_video,
   id,
   isUpdating,
   remove_animation,
   remove_border,
   remove_no_border,
+  remove_video,
   slug,
   tagTitles,
   title
 }: ImageUpload) => {
-  checkImageFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder })
+  checkImageFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder, fileImageVideo })
   const imageData: ImageData = {
     artistNames,
     has_animation,
     has_border,
     has_no_border,
+    has_video,
     id,
     slug,
     tagTitles,
@@ -158,6 +178,18 @@ const imagesUpload = async ({
     }
   }
 
+  if (remove_video) {
+    await deleteImageFromS3(id, 'video')
+    imageData.has_video = false
+  } else if (fileImageVideo) {
+    try {
+      await uploadImageToS3(id, 'video', fileImageVideo)
+      imageData.has_video = true
+    } catch (error) {
+      throw new Error(`error fileImageVideo uploadImageToS3: ${error.message}`)
+    }
+  }
+
   if (fileImageNoBorder) {
     const previewImageFile = await createPreviewImage(fileImageNoBorder)
     await uploadImageToS3(id, 'preview', previewImageFile)
@@ -179,13 +211,14 @@ const imagesUpload = async ({
 }
 
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
-  const { artistNames, has_animation, has_border, has_no_border, remove_animation, remove_border,
-    remove_no_border, slug, tagTitles = [], title } = req.body
-  const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
+  const { artistNames, has_animation, has_border, has_no_border, has_video, remove_animation, remove_border,
+    remove_no_border, remove_video, slug, tagTitles = [], title } = req.body
+  const { fileImageAnimations, fileImageBorders, fileImageNoBorders, fileImageVideos } = req.files
 
   const fileImageAnimation = fileImageAnimations?.[0]
   const fileImageBorder = fileImageBorders?.[0]
   const fileImageNoBorder = fileImageNoBorders?.[0]
+  const fileImageVideo = fileImageVideos?.[0]
 
   const parsedArtistNames = JSON.parse(artistNames)
   const parsedTagTitles = JSON.parse(tagTitles)
@@ -195,14 +228,17 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
     fileImageAnimation,
     fileImageBorder,
     fileImageNoBorder,
+    fileImageVideo,
     has_animation,
     has_border,
     has_no_border,
+    has_video,
     id,
     isUpdating,
     remove_animation,
     remove_border,
     remove_no_border,
+    remove_video,
     slug,
     tagTitles: parsedTagTitles,
     title

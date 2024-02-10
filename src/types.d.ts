@@ -19,10 +19,11 @@ export interface ImageUploadRequest extends Request {
     fileImageAnimations: Express.Multer.File[]
     fileImageBorders: Express.Multer.File[]
     fileImageNoBorders: Express.Multer.File[]
+    fileImageVideos: Express.Multer.File[]
   }
 }
 
-export type ImageType = 'animation' | 'border' | 'no-border' | 'preview'
+export type ImageType = 'animation' | 'border' | 'no-border' | 'preview' | 'video'
 
 export type ArtistProfilePictureType = 'original' | 'preview'
 

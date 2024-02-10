@@ -1,0 +1,2 @@
+ALTER TABLE Image
+ADD COLUMN has_video BOOLEAN DEFAULT false;

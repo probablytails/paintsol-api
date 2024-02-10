@@ -51,15 +51,18 @@ const getUploadImageFileName = (imageType: ImageType) => {
     return 'no-border'
   } else if (imageType === 'preview') {
     return 'preview'
+  } else if (imageType === 'video') {
+    return 'video'
   }
 }
 
 const getUploadImageFileExtension = (imageType: ImageType) => {
   if (imageType === 'animation') {
     return 'gif'
-  } else if (
-    imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {
+  } else if (imageType === 'border' || imageType === 'no-border' || imageType === 'preview') {
     return 'png'
+  } else if (imageType === 'video') {
+    return 'mp4'
   }
 }
 

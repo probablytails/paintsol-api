@@ -80,6 +80,7 @@ type CreateOrUpdateImage = {
   has_animation: boolean
   has_border: boolean
   has_no_border: boolean
+  has_video: boolean
   id: number
   slug: string | null
   tagTitles: string[]
@@ -91,6 +92,7 @@ export async function createImage({
   has_animation,
   has_border,
   has_no_border,
+  has_video,
   id,
   slug,
   tagTitles,
@@ -103,6 +105,7 @@ export async function createImage({
     image.has_animation = has_animation
     image.has_border = has_border
     image.has_no_border = has_no_border
+    image.has_video = has_video
     image.id = id
     image.slug = slug || null
     image.title = title
@@ -124,6 +127,7 @@ export async function updateImage({
   has_animation,
   has_border,
   has_no_border,
+  has_video,
   id,
   slug,
   tagTitles,
@@ -140,6 +144,7 @@ export async function updateImage({
     oldImage.has_animation = has_animation
     oldImage.has_border = has_border
     oldImage.has_no_border = has_no_border
+    oldImage.has_video = has_video
     oldImage.slug = slug || null
     oldImage.title = title
 
