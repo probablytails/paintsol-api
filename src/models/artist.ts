@@ -10,8 +10,29 @@ export class Artist {
   @PrimaryGeneratedColumn('increment')
   id?: number
 
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true
+  })
+  deca_username: string | null
+
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true
+  })
+  foundation_username: string | null
+
   @Column({ type: 'boolean', default: false })
   has_profile_picture: boolean
+
+  @Column({
+    type: 'varchar',
+    length: 30,
+    nullable: true
+  })
+  instagram_username: string | null
 
   // The name uses a case-insensitive uniqueness check.
   // See migration file 0004 for details.
@@ -24,6 +45,13 @@ export class Artist {
     nullable: true
   })
   slug: string | null
+
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true
+  })
+  superrare_username: string | null
 
   @Column({
     type: 'varchar',

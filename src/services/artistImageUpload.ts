@@ -25,18 +25,23 @@ const checkArtistProfilePictureFileTypes = ({ fileArtistProfilePicture }: CheckA
 }
 
 export const artistUploadHandler = async (req: ArtistUploadRequest, id: number) => {
-  const { has_profile_picture, name, remove_profile_picture, slug, twitter_username } = req.body
+  const { deca_username, foundation_username, has_profile_picture, instagram_username,
+    name, remove_profile_picture, slug, superrare_username, twitter_username } = req.body
   const { fileArtistProfilePictures } = req.files
 
   const fileArtistProfilePicture = fileArtistProfilePictures?.[0]
 
   const data = await artistUpload({
+    deca_username,
+    foundation_username,
     fileArtistProfilePicture,
     has_profile_picture,
     id,
+    instagram_username,
     name,
     remove_profile_picture,
     slug,
+    superrare_username,
     twitter_username
   })
 
@@ -44,38 +49,54 @@ export const artistUploadHandler = async (req: ArtistUploadRequest, id: number) 
 }
 
 type ArtistUpload = {
+  deca_username: string | null
+  foundation_username: string | null
   fileArtistProfilePicture: Express.Multer.File
   has_profile_picture: boolean
   id: number
+  instagram_username: string | null
   name: string
   remove_profile_picture: boolean
   slug: string | null
+  superrare_username: string | null
   twitter_username: string | null
 }
 
 type ArtistData = {
+  deca_username: string | null
+  foundation_username: string | null
   has_profile_picture: boolean
   id: number
+  instagram_username: string | null
   name: string
   slug: string | null
+  superrare_username: string | null
   twitter_username: string | null
 }
 
 const artistUpload = async ({
+  deca_username,
   fileArtistProfilePicture,
+  foundation_username,
   has_profile_picture,
   id,
+  instagram_username,
   name,
   remove_profile_picture,
   slug,
+  superrare_username,
   twitter_username
 }: ArtistUpload) => {
   checkArtistProfilePictureFileTypes({ fileArtistProfilePicture })
   const artistData: ArtistData = {
+    deca_username,
+    foundation_username,
     has_profile_picture,
     id,
+    instagram_username,
     name,
     slug,
+    superrare_username,
     twitter_username
   }
 

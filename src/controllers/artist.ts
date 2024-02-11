@@ -72,18 +72,26 @@ export async function getArtistBySlug(slug: string) {
 }
 
 type UpdateArtist = {
+  deca_username: string | null
+  foundation_username: string | null
   has_profile_picture: boolean
   id: number  
+  instagram_username: string | null
   name: string
   slug: string
+  superrare_username: string | null
   twitter_username: string | null
 }
 
 export async function updateArtist({
+  deca_username,
+  foundation_username,
   has_profile_picture,
   id,
+  instagram_username,
   name,
   slug,
+  superrare_username,
   twitter_username
 }: UpdateArtist) {  
   try {
@@ -96,9 +104,13 @@ export async function updateArtist({
     
     const oldName = artistToUpdate.name
 
+    artistToUpdate.deca_username = deca_username
+    artistToUpdate.foundation_username = foundation_username
     artistToUpdate.has_profile_picture = has_profile_picture
+    artistToUpdate.instagram_username = instagram_username
     artistToUpdate.name = name
     artistToUpdate.slug = slug
+    artistToUpdate.superrare_username = superrare_username
     artistToUpdate.twitter_username = twitter_username
 
     return artistRepo.update({
