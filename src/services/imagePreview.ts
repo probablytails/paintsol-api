@@ -23,7 +23,7 @@ const maxAvailableArea = {
   width: overlayArea.width - overlayOffsets.left - overlayOffsets.right
 }
 
-export async function createPreviewImage(borderlessImageFile: Express.Multer.File) {
+export async function createPreviewImageWithBorder(borderlessImageFile: Express.Multer.File) {
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {

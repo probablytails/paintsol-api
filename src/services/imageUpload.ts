@@ -4,7 +4,7 @@ import { getFileExtension } from '../lib/fileExtensions'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 import { createBorderImage } from './imageBorder'
-import { createPreviewImage } from './imagePreview'
+import { createPreviewImageWithBorder } from './imagePreview'
 
 export const imageUploadFields = [
   {
@@ -159,7 +159,7 @@ const imagesUpload = async ({
   }
 
   if (fileImageNoBorder) {
-    const previewImageFile = await createPreviewImage(fileImageNoBorder)
+    const previewImageFile = await createPreviewImageWithBorder(fileImageNoBorder)
     await uploadImageToS3(id, 'preview', previewImageFile)
   }
   
