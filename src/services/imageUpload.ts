@@ -4,7 +4,7 @@ import { getFileExtension } from '../lib/fileExtensions'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 import { createBorderImage } from './imageBorder'
-import { createPreviewImageWithBorder } from './imagePreview'
+import { createPreviewImageWithBorder, createPreviewImageWithoutBorder } from './imagePreview'
 
 export const imageUploadFields = [
   {
@@ -54,6 +54,7 @@ const checkImageFileTypes = ({
 
 type ImageUpload = {
   artistNames: string[]
+  border_preview_crop_position: 'top' | 'middle' | 'bottom'
   fileImageAnimation: Express.Multer.File
   fileImageBorder: Express.Multer.File
   fileImageNoBorder: Express.Multer.File
@@ -62,6 +63,7 @@ type ImageUpload = {
   has_no_border: boolean
   id: number | null
   isUpdating: boolean
+  prevent_border_image: boolean
   remove_animation: boolean
   remove_border: boolean
   remove_no_border: boolean
@@ -83,6 +85,7 @@ type ImageData = {
 
 const imagesUpload = async ({
   artistNames,
+  border_preview_crop_position,
   fileImageAnimation,
   fileImageBorder,
   fileImageNoBorder,
@@ -91,6 +94,7 @@ const imagesUpload = async ({
   has_no_border,
   id,
   isUpdating,
+  prevent_border_image,
   remove_animation,
   remove_border,
   remove_no_border,
@@ -140,7 +144,7 @@ const imagesUpload = async ({
     } catch (error) {
       throw new Error(`error fileImageBorder uploadImageToS3: ${error.message}`)
     }
-  } else if (fileImageNoBorder) {
+  } else if (fileImageNoBorder && !prevent_border_image) {
     const borderImageFile = await createBorderImage(fileImageNoBorder)
     await uploadImageToS3(id, 'border', borderImageFile)
     imageData.has_border = true
@@ -157,9 +161,15 @@ const imagesUpload = async ({
       throw new Error(`error fileImageNoBorder uploadImageToS3: ${error.message}`)
     }
   }
-
-  if (fileImageNoBorder) {
+  
+  if (fileImageNoBorder && !prevent_border_image) {
     const previewImageFile = await createPreviewImageWithBorder(fileImageNoBorder)
+    await uploadImageToS3(id, 'preview', previewImageFile)
+  } else if (fileImageNoBorder) {
+    const previewImageFile = await createPreviewImageWithoutBorder(fileImageNoBorder, border_preview_crop_position)
+    await uploadImageToS3(id, 'preview', previewImageFile)
+  } else if (fileImageBorder) {
+    const previewImageFile = await createPreviewImageWithoutBorder(fileImageBorder, border_preview_crop_position)
     await uploadImageToS3(id, 'preview', previewImageFile)
   }
   
@@ -179,8 +189,9 @@ const imagesUpload = async ({
 }
 
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
-  const { artistNames, has_animation, has_border, has_no_border, remove_animation, remove_border,
-    remove_no_border, slug, tagTitles = [], title } = req.body
+  const { artistNames, border_preview_crop_position, has_animation, has_border, has_no_border,
+    prevent_border_image, remove_animation, remove_border, remove_no_border, slug,
+    tagTitles = [], title } = req.body
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
 
   const fileImageAnimation = fileImageAnimations?.[0]
@@ -192,6 +203,7 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
 
   const data = await imagesUpload({
     artistNames: parsedArtistNames,
+    border_preview_crop_position,
     fileImageAnimation,
     fileImageBorder,
     fileImageNoBorder,
@@ -200,6 +212,7 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
     has_no_border,
     id,
     isUpdating,
+    prevent_border_image,
     remove_animation,
     remove_border,
     remove_no_border,

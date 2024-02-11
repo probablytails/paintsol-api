@@ -72,3 +72,45 @@ async function resizeForImagePreview (borderlessImageBuffer: ArrayBuffer) {
       })
   })
 }
+
+export async function createPreviewImageWithoutBorder(
+  borderedImageFile: Express.Multer.File,
+  cropPosition: 'top' | 'middle' | 'bottom' = 'middle'
+) {
+  return new Promise<Express.Multer.File>((resolve, reject) => {
+    (async () => {
+      try {
+        // Resize the original image to have a width of 800px while maintaining aspect ratio
+        const resizedImageBuffer = await sharp(borderedImageFile?.buffer)
+          .resize({ width: overlayArea.width })
+          .toBuffer()
+
+        // Calculate the dimensions for cropping the resized image
+        const { height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
+        const cropWidth = overlayArea.width
+        const cropHeight = overlayArea.height
+
+        let cropY = 0
+        if (cropPosition === 'top') {
+          cropY = 0
+        } else if (cropPosition === 'middle') {
+          cropY = Math.floor((resizedHeight - cropHeight) / 2)
+        } else if (cropPosition === 'bottom') {
+          cropY = resizedHeight - cropHeight
+        }
+
+        // Crop the resized image based on crop position
+        const croppedImageBuffer = await sharp(resizedImageBuffer)
+          .extract({ left: 0, top: cropY, width: cropWidth, height: cropHeight })
+          .toBuffer()
+
+        // Convert the cropped image buffer to Express Multer File object
+        const croppedImageFile = arrayBufferToExpressMulterFile(croppedImageBuffer, 'temp-preview', 'image/png')
+
+        resolve(croppedImageFile)
+      } catch (error) {
+        reject(error)
+      }
+    })()
+  })
+}
