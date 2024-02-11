@@ -80,15 +80,33 @@ export async function createPreviewImageWithoutBorder(
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {
-        // Resize the original image to have a width of 800px while maintaining aspect ratio
-        const resizedImageBuffer = await sharp(borderedImageFile?.buffer)
-          .resize({ width: overlayArea.width })
-          .toBuffer()
+        const { width: originalWidth, height: originalHeight } = await sharp(borderedImageFile?.buffer).metadata()
+
+        const aspectRatio = originalWidth / originalHeight
+        const shouldCropFromMiddle = aspectRatio > 1.9 && originalHeight > overlayArea.height && originalWidth > overlayArea.width
+
+        let resizedImageBuffer = borderedImageFile?.buffer
+
+        if (shouldCropFromMiddle) {
+          resizedImageBuffer = await sharp(borderedImageFile?.buffer)
+            .resize({ height: overlayArea.height })
+            .toBuffer()
+        } else {
+          resizedImageBuffer = await sharp(borderedImageFile?.buffer)
+            .resize({ width: overlayArea.width })
+            .toBuffer()
+        }
 
         // Calculate the dimensions for cropping the resized image
-        const { height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
+        const { height: resizedHeight, width: resizedWidth } = await sharp(resizedImageBuffer).metadata()
+
         const cropWidth = overlayArea.width
         const cropHeight = overlayArea.height
+
+        let cropX = 0
+        if (shouldCropFromMiddle) {
+          cropX = Math.floor((resizedWidth - cropWidth) / 2)
+        }
 
         let cropY = 0
         if (cropPosition === 'top') {
@@ -99,9 +117,9 @@ export async function createPreviewImageWithoutBorder(
           cropY = resizedHeight - cropHeight
         }
 
-        // Crop the resized image based on crop position
+        // Crop the resized image from the horizontal middle
         const croppedImageBuffer = await sharp(resizedImageBuffer)
-          .extract({ left: 0, top: cropY, width: cropWidth, height: cropHeight })
+          .extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight })
           .toBuffer()
 
         // Convert the cropped image buffer to Express Multer File object
@@ -114,3 +132,4 @@ export async function createPreviewImageWithoutBorder(
     })()
   })
 }
+
