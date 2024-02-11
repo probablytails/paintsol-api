@@ -40,14 +40,14 @@ const checkImageFileTypes = ({
   }
   if (fileImageBorder) {
     const ext = getFileExtension(fileImageBorder)
-    if (ext !== 'png' && ext !== 'jpg') {
-      throw new Error('Invalid image border file type. Expected a png or jpg file.')
+    if (ext !== 'png' && ext !== 'jpg' && ext !== 'jpeg') {
+      throw new Error('Invalid image border file type. Expected a png, jpg, or jpeg file.')
     }
   }
   if (fileImageNoBorder) {
     const ext = getFileExtension(fileImageNoBorder)
-    if (ext !== 'png' && ext !== 'jpg') {
-      throw new Error('Invalid image no border file type. Expected a png or jpg file.')
+    if (ext !== 'png' && ext !== 'jpg' && ext !== 'jpeg') {
+      throw new Error('Invalid image no border file type. Expected a png, jpg, or jpeg file.')
     }
   }
 }
