@@ -4,6 +4,7 @@ import { getFileExtension } from '../lib/fileExtensions'
 import { ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 import { createBorderImage } from './imageBorder'
+import { createMaxResizedImage } from './imageMaxResize'
 import { createPreviewImageWithBorder, createPreviewImageWithoutBorder } from './imagePreview'
 
 export const imageUploadFields = [
@@ -145,7 +146,8 @@ const imagesUpload = async ({
       throw new Error(`error fileImageBorder uploadImageToS3: ${error.message}`)
     }
   } else if (fileImageNoBorder && !prevent_border_image) {
-    const borderImageFile = await createBorderImage(fileImageNoBorder)
+    const resizedBorderImageFile = await createMaxResizedImage(fileImageNoBorder)
+    const borderImageFile = await createBorderImage(resizedBorderImageFile)
     await uploadImageToS3(id, 'border', borderImageFile)
     imageData.has_border = true
   }
@@ -155,7 +157,8 @@ const imagesUpload = async ({
     imageData.has_no_border = false
   } else if (fileImageNoBorder) {
     try {
-      await uploadImageToS3(id, 'no-border', fileImageNoBorder)
+      const noBorderImageFile = await createMaxResizedImage(fileImageNoBorder)
+      await uploadImageToS3(id, 'no-border', noBorderImageFile)
       imageData.has_no_border = true
     } catch (error) {
       throw new Error(`error fileImageNoBorder uploadImageToS3: ${error.message}`)
