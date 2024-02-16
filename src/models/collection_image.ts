@@ -14,6 +14,9 @@ export class CollectionImage {
   @Column()
   image_position: number
 
+  @Column({ length: 20, default: 'no-border', enum: ['no-border', 'border', 'animation'] })
+  image_type: string
+
   @Column({ nullable: true })
   preview_position: number | null
 

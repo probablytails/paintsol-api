@@ -177,16 +177,20 @@ export async function deleteCollection(id: number) {
   }
 }
 
+type CollectionImageType = 'no-border' | 'border' | 'animation'
+
 type AddImageToCollection = {
   collection_id: number
   image_id: number
   isPreview: boolean
+  collection_image_type: CollectionImageType
 }
 
 export async function addImageToCollection({
   collection_id,
   image_id,
-  isPreview
+  isPreview,
+  collection_image_type
 }: AddImageToCollection) {
   try {
     let previewPosition: number | null = null
@@ -201,6 +205,7 @@ export async function addImageToCollection({
     collectionImage.image_id = image_id
     collectionImage.image_position = nextImagePosition
     collectionImage.preview_position = previewPosition
+    collectionImage.image_type = collection_image_type
 
     await appDataSource.manager.save(collectionImage)
 

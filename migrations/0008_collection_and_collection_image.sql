@@ -15,6 +15,7 @@ CREATE TABLE public.collection_image (
     image_id INTEGER REFERENCES public.image(id) ON DELETE CASCADE,
     image_position INTEGER NOT NULL,
     preview_position INTEGER UNIQUE,
+    image_type VARCHAR(20) NOT NULL DEFAULT 'no-border' CHECK (image_type IN ('no-border', 'border', 'animation')),
     PRIMARY KEY (collection_id, image_id),
     CONSTRAINT image_position_check CHECK (image_position >= 1),
     CONSTRAINT unique_image_position_per_collection_image UNIQUE (collection_id, image_position),
