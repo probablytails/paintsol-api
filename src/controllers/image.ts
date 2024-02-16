@@ -308,21 +308,24 @@ type SearchImagesByCollectionId = {
 export async function getImagesByCollectionId({ collection_id, page }: SearchImagesByCollectionId) {
   try {
     const { skip, take } = getPaginationQueryParams(page)
-    const collectionImagesWithImages = await appDataSource
+    const data = await appDataSource
       .createQueryBuilder(CollectionImage, 'ci')
       .innerJoinAndSelect('ci.image', 'image')
       .where('ci.collection_id = :collectionId', { collectionId: collection_id })
       .orderBy('ci.image_position', 'ASC')
       .skip(skip)
       .take(take)
-      .getMany()
+      .getManyAndCount()
+
+    const collectionImagesWithImages = data?.[0] || []
+    const collectionImagesWithImagesCount = data?.[1] || []
 
     // Extract images from the collectionImagesWithImages array
-    const images = collectionImagesWithImages.map(ci => ci.image);
+    const images = collectionImagesWithImages.map(ci => ci.image)
 
-    return images;
+    return [images, collectionImagesWithImagesCount]
   } catch (error) {
-    handleThrowError(error);
+    handleThrowError(error)
   }
 }
 
