@@ -13,7 +13,7 @@ import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
 import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug } from './controllers/artist'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
-  getImagesByTagId, getImages, getImagesWithoutArtist } from './controllers/image'
+  getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
@@ -25,6 +25,8 @@ import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from 
 import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
 import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
 import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
+import { addImageToCollection, createCollection, deleteCollection, getAllCollections, getCollectionById,
+  getCollectionBySlug, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 
 const port = 4321
 
@@ -160,12 +162,189 @@ const startApp = async () => {
       }
     })
 
+  app.post('/collection',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { slug, stickers_url, title, type } = req.body
+        const data = await createCollection({ slug, stickers_url, title, type })
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/collection/update',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { id, slug, stickers_url, title, type } = req.body
+        const parsedId = parseInt(id, 10)
+        if (parsedId === 1 || parsedId > 1) {
+          const data = await updateCollection({
+            id: parsedId,
+            slug,
+            stickers_url,
+            title,
+            type
+          })
+          res.status(201)
+          res.send(data)
+        } else {
+          throw new Error(`Invalid id provided: ${id}`)
+        }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/collection/image/add',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { collection_id, image_id, isPreview } = req.body
+        const data = await addImageToCollection({
+          collection_id,
+          image_id,
+          isPreview
+        })
+
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/collection/image/remove',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { collection_id, image_id } = req.body
+        const data = await removeImageFromCollection({
+          collection_id,
+          image_id
+        })
+
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/collection/image/image-positions/update',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { collection_id, newImagePositions } = req.body
+        const data = await updateCollectionImagePositions(collection_id, newImagePositions)
+
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.post('/collection/image/preview-positions/update',
+    requiresAuth(),
+    async function (req: Request, res: Response) {
+      try {
+        const { collection_id, newPreviewPositions } = req.body
+        const data = await updateCollectionPreviewPositions(collection_id, newPreviewPositions)
+
+        res.status(201)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  /*
+    Using POST for this delete endpoint instead of DELETE
+    because I was getting a CORS issue from Auth0 when I
+    tried to use the DELETE request method.
+  */
+  app.post('/collection/delete/:id',
+    requiresAuth(),
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId } = req.locals
+        await deleteCollection(intId)
+        res.status(201)
+        res.send({ message: 'Collection successfully deleted' })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/collection/:id',
+    parsePathIntIdOrSlug,
+    async function (req: PathIntIdOrSlugRequest, res: Response) {
+      try {
+        const { intId, slug } = req.locals
+        
+        let data = null
+        if (intId) {
+          data = await getCollectionById(intId)
+        } else if (slug) {
+          data = await getCollectionBySlug(slug)
+        }
+
+        if (!data) {
+          res.status(404)
+          res.send({ message: 'Collection not found' })
+        } else {
+          res.status(200)
+          res.send(data)
+        }
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/collections/all', async function (req: Request, res: Response) {
+    try {
+      const data = await getAllCollections()
+      res.status(200)
+      res.send(data)
+    } catch (error) {
+      res.status(400)
+      res.send({ message: error.message })
+    }
+  })
+
   app.get('/images/by-artist',
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
         const { id: artistId, page } = req.locals
         const data = await getImagesByArtistId({ artistId, page })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/images/by-collection',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { id: collection_id, page } = req.locals
+        const data = await getImagesByCollectionId({ collection_id, page })
         res.status(200)
         res.send(data)
       } catch (error) {

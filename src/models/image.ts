@@ -41,7 +41,7 @@ export class Image {
   })
   artists: Artist[]
 
-  @ManyToMany(() => Collection, collection => collection.images, { cascade: true })
+  @ManyToMany(() => Collection, { cascade: true })
   @JoinTable({
     name: 'collection_image',
     joinColumn: { name: 'image_id', referencedColumnName: 'id' },

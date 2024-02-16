@@ -14,8 +14,8 @@ export class CollectionImage {
   @Column()
   image_position: number
 
-  @Column()
-  preview_position: number
+  @Column({ nullable: true })
+  preview_position: number | null
 
   @ManyToOne(() => Collection, collection => collection.images)
   @JoinColumn({ name: 'collection_id' })

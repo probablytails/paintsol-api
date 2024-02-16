@@ -8,6 +8,7 @@ import { findOrCreateTags, getTagById } from './tag'
 import { ImageArtist } from '../models/imageArtist'
 import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
+import { CollectionImage } from '../models/collection_image'
 
 export async function getImageMaxId() {
   try {
@@ -294,6 +295,49 @@ export async function getImagesWithoutArtist({ page }: SearchImagesWithoutArtist
       .getManyAndCount()
   
     return data
+  } catch (error: unknown) {
+    handleThrowError(error)
+  }
+}
+
+type SearchImagesByCollectionId = {
+  collection_id: number
+  page: number
+}
+
+export async function getImagesByCollectionId({ collection_id, page }: SearchImagesByCollectionId) {
+  try {
+    const { skip, take } = getPaginationQueryParams(page)
+    const collectionImagesWithImages = await appDataSource
+      .createQueryBuilder(CollectionImage, 'ci')
+      .innerJoinAndSelect('ci.image', 'image')
+      .where('ci.collection_id = :collectionId', { collectionId: collection_id })
+      .orderBy('ci.image_position', 'ASC')
+      .skip(skip)
+      .take(take)
+      .getMany()
+
+    // Extract images from the collectionImagesWithImages array
+    const images = collectionImagesWithImages.map(ci => ci.image);
+
+    return images;
+  } catch (error) {
+    handleThrowError(error);
+  }
+}
+
+export async function getCollectionPreviewImages(collectionId: number) {
+  try {
+    const collectionImageRepo = appDataSource.getRepository(CollectionImage)
+    const collectionImages = await collectionImageRepo
+      .createQueryBuilder('collection_image')
+      .where('collection_image.preview_position > 1')
+      .innerJoinAndSelect('collection_image.image', 'image')
+      .innerJoin('collection_image.collection', 'collection', 'collection.id = :collectionId', { collectionId })
+      .orderBy('collection_image.image_position', 'ASC')
+      .getMany()
+
+    return collectionImages
   } catch (error: unknown) {
     handleThrowError(error)
   }
