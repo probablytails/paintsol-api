@@ -17,11 +17,11 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
   try {
     // Validate that page is an integer greater than or equal to 1 if it's provided
     if (page !== undefined && (!Number.isInteger(page) || page < 1)) {
-      throw new Error('The page must be an integer greater than or equal to 1.')
+      throw new Error('The page must be an integer greater than or equal to 1.');
     }
 
-    // Construct the base query
-    let query = `
+    // Construct the base query for fetching collections
+    let queryCollections = `
       SELECT
         c.id AS "id",
         COALESCE(
@@ -54,24 +54,35 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
       ORDER BY
         c.id`
 
-    // If retrieveAll is true, ignore the page parameter
+    // Construct the query for fetching total count of collections
+    const queryCount = 'SELECT COUNT(*) AS "count" FROM collection;'
+
     let take = 0
     let skip = 0
+
+    // If retrieveAll is true, execute only the query for fetching collections
     if (retrieveAll === true) {
-      query += ';'
+      queryCollections += ';'
     } else {
       // Calculate offset based on the page number
       const pagination = getPaginationQueryParams(page)
       take = pagination.take
       skip = pagination.skip
-      query += `
+      queryCollections += `
         LIMIT $1
         OFFSET $2;`
     }
 
-    // Execute the constructed query
-    const result = await appDataSource.query(query, retrieveAll === true ? [] : [take, skip])
-    return result
+    // Execute both queries
+    const [collectionsResult, countResult] = await Promise.all([
+      appDataSource.query(queryCollections, retrieveAll === true ? [] : [take, skip]),
+      appDataSource.query(queryCount)
+    ])
+
+    // Extract collections and count from results
+    const collections = collectionsResult
+    const collectionsCount = countResult?.[0].count
+    return [collections, collectionsCount]
 
   } catch (error) {
     handleThrowError(error)
