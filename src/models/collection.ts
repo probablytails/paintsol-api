@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 import { Image } from './image'
 
 @Entity('collection', { schema: 'public' })
@@ -34,4 +34,10 @@ export class Collection {
     inverseJoinColumn: { name: 'image_id', referencedColumnName: 'id' }
   })
   images: Image[]
+
+  @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date
+
+  @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  updated_at: Date
 }

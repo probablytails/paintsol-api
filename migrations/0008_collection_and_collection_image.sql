@@ -19,5 +19,7 @@ CREATE TABLE public.collection_image (
     PRIMARY KEY (collection_id, image_id),
     CONSTRAINT image_position_check CHECK (image_position >= 1),
     CONSTRAINT unique_image_position_per_collection_image UNIQUE (collection_id, image_position),
-    CONSTRAINT positive_preview_position CHECK (preview_position > 0)
+    CONSTRAINT positive_preview_position CHECK (preview_position > 0),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
