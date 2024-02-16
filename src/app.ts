@@ -205,11 +205,12 @@ const startApp = async () => {
     requiresAuth(),
     async function (req: Request, res: Response) {
       try {
-        const { collection_id, image_id, isPreview } = req.body
+        const { collection_id, image_id, isPreview, collection_image_type } = req.body
         const data = await addImageToCollection({
           collection_id,
           image_id,
-          isPreview
+          isPreview,
+          collection_image_type
         })
 
         res.status(201)
