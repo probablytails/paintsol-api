@@ -1,7 +1,6 @@
 /* eslint-disable indent */
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm'
 import { Image } from './image'
-import { CollectionImage } from './collection_image'
 
 @Entity('collection', { schema: 'public' })
 export class Collection {
