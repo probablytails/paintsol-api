@@ -1,15 +1,27 @@
 import { Equal } from 'typeorm'
 import appDataSource from '../db'
 import { handleThrowError } from '../lib/errors'
+import { getPaginationQueryParams } from '../lib/pagination'
 import { Collection } from '../models/collection'
 import { getCollectionPreviewImages } from './image'
 import { CollectionImage } from '../models/collection_image'
 
 export type CollectionType = 'general' | 'telegram-sticker' | 'discord-sticker'
 
-export async function getAllCollections() {
+type SearchCollection = {
+  page: number
+  retrieveAll: boolean
+}
+
+export async function getCollections({ page, retrieveAll }: SearchCollection) {
   try {
-    const query = `
+    // Validate that page is an integer greater than or equal to 1 if it's provided
+    if (page !== undefined && (!Number.isInteger(page) || page < 1)) {
+      throw new Error('The page must be an integer greater than or equal to 1.')
+    }
+
+    // Construct the base query
+    let query = `
       SELECT
         c.id AS "id",
         COALESCE(
@@ -23,7 +35,7 @@ export async function getAllCollections() {
               ELSE
                 NULL
             END
-            ORDER BY ci.preview_position ASC  -- Order by preview_position ascending
+            ORDER BY ci.preview_position ASC
           ) FILTER (WHERE i.id IS NOT NULL),
           '[]'
         ) AS "preview_images",
@@ -39,11 +51,29 @@ export async function getAllCollections() {
         image i ON ci.image_id = i.id AND ci.preview_position >= 1
       GROUP BY
         c.id
-    `
+      ORDER BY
+        c.id`
 
-    const result = await appDataSource.query(query)
+    // If retrieveAll is true, ignore the page parameter
+    let take = 0
+    let skip = 0
+    if (retrieveAll === true) {
+      query += ';'
+    } else {
+      // Calculate offset based on the page number
+      const pagination = getPaginationQueryParams(page)
+      take = pagination.take
+      skip = pagination.skip
+      query += `
+        LIMIT $1
+        OFFSET $2;`
+    }
+
+    // Execute the constructed query
+    const result = await appDataSource.query(query, retrieveAll === true ? [] : [take, skip])
     return result
-  } catch (error: unknown) {
+
+  } catch (error) {
     handleThrowError(error)
   }
 }

@@ -25,8 +25,8 @@ import { queryArtistCountMaterializedView, refreshArtistMaterializedView } from 
 import { queryImageCountMaterializedView, refreshImageMaterializedView } from './controllers/imageCountMaterializedView'
 import { queryTagCountMaterializedView, refreshTagMaterializedView } from './controllers/tagCountMaterializedView'
 import { artistUploadFields, artistUploadHandler } from './services/artistImageUpload'
-import { addImageToCollection, createCollection, deleteCollection, getAllCollections, getCollectionById,
-  getCollectionBySlug, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
+import { addImageToCollection, createCollection, deleteCollection, getCollectionById,
+  getCollectionBySlug, getCollections, removeImageFromCollection, updateCollection, updateCollectionImagePositions, updateCollectionPreviewPositions } from './controllers/collections'
 
 const port = 4321
 
@@ -317,7 +317,7 @@ const startApp = async () => {
 
   app.get('/collections/all', async function (req: Request, res: Response) {
     try {
-      const data = await getAllCollections()
+      const data = await getCollections({ page: 1, retrieveAll: true })
       res.status(200)
       res.send(data)
     } catch (error) {
@@ -325,6 +325,34 @@ const startApp = async () => {
       res.send({ message: error.message })
     }
   })
+
+  app.get('/collections',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { page } = req.locals
+        const data = await getCollections({ page, retrieveAll: false })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/images',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { page } = req.locals
+        const data = await getImages({ page })
+        res.status(200)
+        res.send(data)
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
 
   app.get('/images/by-artist',
     parsePageQuery,
