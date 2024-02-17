@@ -17,7 +17,7 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
   try {
     // Validate that page is an integer greater than or equal to 1 if it's provided
     if (page !== undefined && (!Number.isInteger(page) || page < 1)) {
-      throw new Error('The page must be an integer greater than or equal to 1.');
+      throw new Error('The page must be an integer greater than or equal to 1.')
     }
 
     // Construct the base query for fetching collections
