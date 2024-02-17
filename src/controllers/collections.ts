@@ -29,8 +29,8 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
             CASE
               WHEN i.id IS NOT NULL THEN
                 jsonb_build_object(
-                  'imageId', i.id,
-                  'previewPosition', ci.preview_position
+                  'image_id', i.id,
+                  'image_type', ci.image_type
                 )
               ELSE
                 NULL
