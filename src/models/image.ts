@@ -3,6 +3,7 @@ import { Entity, Column, CreateDateColumn,
   UpdateDateColumn, ManyToMany, JoinTable, PrimaryColumn } from 'typeorm'
 import { Artist } from './artist'
 import { Tag } from './tag'
+import { Collection } from './collection'
 
 @Entity('image', { schema: 'public' })
 export class Image {
@@ -39,6 +40,14 @@ export class Image {
     inverseJoinColumn: { name: 'artist_id', referencedColumnName: 'id' }
   })
   artists: Artist[]
+
+  @ManyToMany(() => Collection, { cascade: true })
+  @JoinTable({
+    name: 'collection_image',
+    joinColumn: { name: 'image_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'collection_id', referencedColumnName: 'id' }
+  })
+  collections: Collection[]
 
   @ManyToMany(() => Tag, { cascade: true })
   @JoinTable({
