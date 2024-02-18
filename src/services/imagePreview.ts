@@ -80,42 +80,55 @@ export async function createPreviewImageWithoutBorder(
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {
+        console.log('createPreviewImageWithoutBorder')
         const { width: originalWidth, height: originalHeight } = await sharp(borderedImageFile?.buffer).metadata()
+        console.log('borderedImage originalWidth originalHeight', originalWidth, originalHeight)
+
 
         const aspectRatio = originalWidth / originalHeight
+        console.log('aspectRatio', aspectRatio)
         const shouldCropFromMiddle = aspectRatio > 1.9 && originalHeight > overlayArea.height && originalWidth > overlayArea.width
-
+        console.log('shouldCropFromMiddle', shouldCropFromMiddle)
         let resizedImageBuffer = borderedImageFile?.buffer
 
-        if (shouldCropFromMiddle) {
+        if (originalWidth < overlayArea.width) {
           resizedImageBuffer = await sharp(borderedImageFile?.buffer)
-            .resize({ height: overlayArea.height })
+            .resize({
+              width: overlayArea.width
+            })
             .toBuffer()
-        } else {
+        }
+
+        const { height: initialResizedHeight } = await sharp(resizedImageBuffer).metadata()
+
+        if (initialResizedHeight < overlayArea.height) {
           resizedImageBuffer = await sharp(borderedImageFile?.buffer)
-            .resize({ width: overlayArea.width })
+            .resize({
+              height: overlayArea.height
+            })
             .toBuffer()
         }
 
         // Calculate the dimensions for cropping the resized image
-        const { height: resizedHeight, width: resizedWidth } = await sharp(resizedImageBuffer).metadata()
-
+        const { width: resizedWidth, height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
+        console.log('resizedImage resizedWidth resizedHeight', resizedWidth, resizedHeight)
         const cropWidth = overlayArea.width
         const cropHeight = overlayArea.height
 
-        let cropX = 0
-        if (shouldCropFromMiddle) {
-          cropX = Math.floor((resizedWidth - cropWidth) / 2)
-        }
+        const cropX = Math.floor((resizedWidth - cropWidth) / 2) || 0
+        console.log('cropX', cropX)
 
         let cropY = 0
         if (cropPosition === 'top') {
           cropY = 0
         } else if (cropPosition === 'middle') {
-          cropY = Math.floor((resizedHeight - cropHeight) / 2)
+          const newCropY = Math.floor((resizedHeight - cropHeight) / 2)
+          cropY = newCropY > 0 ? newCropY : 0
         } else if (cropPosition === 'bottom') {
-          cropY = resizedHeight - cropHeight
+          const newCropY = resizedHeight - cropHeight
+          cropY = newCropY > 0 ? newCropY : 0
         }
+        console.log('cropY', cropY)
 
         // Crop the resized image from the horizontal middle
         const croppedImageBuffer = await sharp(resizedImageBuffer)
