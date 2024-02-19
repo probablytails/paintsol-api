@@ -231,5 +231,6 @@ export const deleteS3ImageAndDBImage = async (id: number) => {
   await deleteImageFromS3(id, 'animation')
   await deleteImageFromS3(id, 'border')
   await deleteImageFromS3(id, 'no-border')
+  await deleteImageFromS3(id, 'preview')
   await deleteImage(id)
 }
