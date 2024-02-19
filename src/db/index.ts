@@ -19,6 +19,7 @@ const appDataSource = new DataSource({
   username: config.db.username,
   password: config.db.password,
   synchronize: false,
+  logging: false,
   entities: [
     Artist,
     ArtistCountMaterializedView,
