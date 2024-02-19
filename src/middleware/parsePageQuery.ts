@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express'
 import { PageRequest } from '../types'
-import { CollectionType } from '../controllers/collections'
+import { CollectionQueryType, CollectionSortType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
   const { id, page } = req.query
@@ -19,11 +19,12 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
 }
 
 export const parseCollectionsQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
-  const { type } = req.query
+  const { sort, type } = req.query
 
   req.locals = {
     ...req.locals,
-    collectionType: type as CollectionType
+    collectionType: type as CollectionQueryType,
+    collectionSort: sort as CollectionSortType
   }
 
   await next()

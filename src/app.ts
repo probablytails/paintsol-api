@@ -331,7 +331,12 @@ const startApp = async () => {
 
   app.get('/collections/all', async function (req: Request, res: Response) {
     try {
-      const data = await getCollections({ page: 1, retrieveAll: true, type: 'all' })
+      const data = await getCollections({
+        page: 1,
+        retrieveAll: true,
+        type: 'all',
+        sort: 'alphabetical'
+      })
       res.status(200)
       res.send(data)
     } catch (error) {
@@ -345,8 +350,13 @@ const startApp = async () => {
     parseCollectionsQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { collectionType, page } = req.locals
-        const data = await getCollections({ page, retrieveAll: false, type: collectionType })
+        const { collectionSort, collectionType, page } = req.locals
+        const data = await getCollections({
+          page,
+          retrieveAll: false,
+          type: collectionType,
+          sort: collectionSort
+        })
         res.status(200)
         res.send(data)
       } catch (error) {

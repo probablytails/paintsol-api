@@ -7,14 +7,17 @@ import { getCollectionPreviewImages } from './image'
 import { CollectionImage } from '../models/collection_image'
 
 export type CollectionType = 'general' | 'telegram-stickers' | 'discord-stickers'
+export type CollectionQueryType = 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'all'
+export type CollectionSortType = 'alphabetical' | 'reverse-alphabetical' | 'newest' | 'oldest'
 
 type SearchCollection = {
   page: number
   retrieveAll: boolean
-  type: 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'all'
+  type: CollectionQueryType
+  sort: CollectionSortType
 }
 
-export async function getCollections({ page, retrieveAll, type }: SearchCollection) {
+export async function getCollections({ page, retrieveAll, type, sort }: SearchCollection) {
   try {
     // Validate that page is an integer greater than or equal to 1 if it's provided
     if (page !== undefined && (!Number.isInteger(page) || page < 1)) {
@@ -62,12 +65,20 @@ export async function getCollections({ page, retrieveAll, type }: SearchCollecti
       queryCollections += ' WHERE c.type IN (\'telegram-stickers\', \'discord-stickers\')'
     }
 
-    queryCollections += `
-      GROUP BY
-        c.id
-      ORDER BY
-        c.id
-    `
+    queryCollections += ' GROUP BY c.id'
+
+    // Append ORDER BY clause based on the sort parameter
+    if (sort === 'alphabetical') {
+      queryCollections += ' ORDER BY c.title ASC'
+    } else if (sort === 'reverse-alphabetical') {
+      queryCollections += ' ORDER BY c.title DESC'
+    } else if (sort === 'newest') {
+      queryCollections += ' ORDER BY c.created_at DESC'
+    } else if (sort === 'oldest') {
+      queryCollections += ' ORDER BY c.created_at ASC'
+    }
+
+
 
     // Construct the query for fetching total count of collections including type filtering
     let queryCount = 'SELECT COUNT(*) AS "count" FROM collection c'

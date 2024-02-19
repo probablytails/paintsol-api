@@ -1,11 +1,12 @@
 import { Request } from 'express'
-import { CollectionType } from './controllers/collections'
+import { CollectionQueryType, CollectionSortType } from './controllers/collections'
 
 export interface PageRequest extends Request {
   locals: {
     id?: number | null
     page?: number
-    collectionType?: CollectionType
+    collectionType?: CollectionQueryType
+    collectionSort?: CollectionSortType
   }
 }
 
@@ -13,7 +14,8 @@ export interface PathIntIdOrSlugRequest extends Request {
   locals: {
     intId?: number
     slug?: string
-    collectionType?: CollectionType
+    collectionType?: CollectionQueryType
+    collectionSort?: CollectionSortType
   }
 }
 
