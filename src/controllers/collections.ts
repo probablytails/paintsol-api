@@ -69,12 +69,21 @@ export async function getCollections({ page, retrieveAll, type }: SearchCollecti
         c.id
     `
 
-    // Construct the query for fetching total count of collections
-    const queryCount = 'SELECT COUNT(*) AS "count" FROM collection;'
-    
+    // Construct the query for fetching total count of collections including type filtering
+    let queryCount = 'SELECT COUNT(*) AS "count" FROM collection c'
+    if (type === 'general') {
+      queryCount += ' WHERE c.type = \'general\''
+    } else if (type === 'telegram-stickers') {
+      queryCount += ' WHERE c.type = \'telegram-stickers\''
+    } else if (type === 'discord-stickers') {
+      queryCount += ' WHERE c.type = \'discord-stickers\''
+    } else if (type === 'stickers') {
+      queryCount += ' WHERE c.type IN (\'telegram-stickers\', \'discord-stickers\')'
+    }
+
     let take = 0
     let skip = 0
-    
+
     // If retrieveAll is true, execute only the query for fetching collections
     if (retrieveAll === true) {
       queryCollections += ';'
