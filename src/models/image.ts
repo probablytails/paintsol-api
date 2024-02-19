@@ -1,9 +1,12 @@
 /* eslint-disable indent */
 import { Entity, Column, CreateDateColumn,
-  UpdateDateColumn, ManyToMany, JoinTable, PrimaryColumn } from 'typeorm'
+  UpdateDateColumn, ManyToMany, JoinTable, PrimaryColumn, AfterInsert, AfterRemove } from 'typeorm'
 import { Artist } from './artist'
 import { Tag } from './tag'
 import { Collection } from './collection'
+import appDataSource from '../db'
+import { getArtistById, getTotalImagesWithArtistId } from '../controllers/artist'
+import { handleLogError } from '../lib/errors'
 
 @Entity('image', { schema: 'public' })
 export class Image {
@@ -62,4 +65,42 @@ export class Image {
 
   @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date
+
+  @AfterInsert()
+  async updateArtistTotalImagesAfterInsert() {
+    try {
+      const artists = this.artists || []
+      if (artists.length > 0) {
+        for (const artist of artists) {
+          const artistRepository = appDataSource.getRepository(Artist)
+          const currentCount = await getTotalImagesWithArtistId(artist.id)
+          const existingArtist = await getArtistById(artist.id)
+          existingArtist.total_images = currentCount + 1
+          await artistRepository.save(existingArtist)
+        }
+      }
+    } catch (error) {
+      handleLogError(error)
+    }
+  }
+
+  @AfterRemove()
+  async updateArtistTotalImagesAfterRemove() {
+    try {
+      const artists = this.artists || []
+      if (artists.length > 0) {
+        for (const artist of artists) {
+          const artistRepository = appDataSource.getRepository(Artist)
+          const currentCount = await getTotalImagesWithArtistId(artist.id)
+          const existingArtist = await getArtistById(artist.id)
+          if (currentCount >= 1) {
+            existingArtist.total_images = currentCount - 1
+          }
+          await artistRepository.save(existingArtist)
+        }
+      }
+    } catch (error) {
+      handleLogError(error)
+    }
+  }
 }

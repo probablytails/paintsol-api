@@ -3,6 +3,7 @@ import appDataSource from '../db'
 import { Artist } from '../models/artist'
 import { handleThrowError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'
+import { ImageArtist } from '../models/imageArtist'
 
 type FindOrCreateArtists = string[]
 
@@ -61,11 +62,24 @@ export async function getArtists({ page }: GetArtists) {
       'image',
       'ROW(image.id, artist.id) IN (SELECT image_id, artist_id FROM image_artist)'
     )
+    .orderBy('artist.total_images','DESC')
     .skip(skip)
     .take(take)
-    .getManyAndCount()
+    .getMany()
 
   return artistsWithImages
+}
+
+export async function getTotalImagesWithArtistId(id: number) {
+  const result = await appDataSource
+    .getRepository(ImageArtist)
+    .count({
+      where: {
+        artist_id: id
+      }
+    })
+
+  return result
 }
 
 export async function getArtistById(id: number) {

@@ -1,8 +1,11 @@
 /* eslint-disable indent */
 import { Entity, PrimaryGeneratedColumn, Unique, PrimaryColumn, ManyToMany,
   JoinTable, 
-  Column} from 'typeorm'
+  Column,
+  AfterInsert,
+  AfterRemove} from 'typeorm'
 import { Image } from './image'
+import appDataSource from '../db'
 
 @Entity('artist', { schema: 'public' })
 @Unique(['name'])
@@ -53,6 +56,9 @@ export class Artist {
   })
   superrare_username: string | null
 
+  @Column({ type: 'int', default: 0 })
+  total_images: number
+
   @Column({
     type: 'varchar',
     length: 15,
@@ -68,4 +74,3 @@ export class Artist {
   })
   images: Image[]
 }
-
