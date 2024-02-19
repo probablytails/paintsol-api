@@ -80,15 +80,8 @@ export async function createPreviewImageWithoutBorder(
   return new Promise<Express.Multer.File>((resolve, reject) => {
     (async () => {
       try {
-        console.log('createPreviewImageWithoutBorder')
-        const { width: originalWidth, height: originalHeight } = await sharp(borderedImageFile?.buffer).metadata()
-        console.log('borderedImage originalWidth originalHeight', originalWidth, originalHeight)
+        const { width: originalWidth } = await sharp(borderedImageFile?.buffer).metadata()
 
-
-        const aspectRatio = originalWidth / originalHeight
-        console.log('aspectRatio', aspectRatio)
-        const shouldCropFromMiddle = aspectRatio > 1.9 && originalHeight > overlayArea.height && originalWidth > overlayArea.width
-        console.log('shouldCropFromMiddle', shouldCropFromMiddle)
         let resizedImageBuffer = borderedImageFile?.buffer
 
         if (originalWidth < overlayArea.width) {
@@ -111,12 +104,10 @@ export async function createPreviewImageWithoutBorder(
 
         // Calculate the dimensions for cropping the resized image
         const { width: resizedWidth, height: resizedHeight } = await sharp(resizedImageBuffer).metadata()
-        console.log('resizedImage resizedWidth resizedHeight', resizedWidth, resizedHeight)
         const cropWidth = overlayArea.width
         const cropHeight = overlayArea.height
 
         const cropX = Math.floor((resizedWidth - cropWidth) / 2) || 0
-        console.log('cropX', cropX)
 
         let cropY = 0
         if (cropPosition === 'top') {
@@ -128,7 +119,6 @@ export async function createPreviewImageWithoutBorder(
           const newCropY = resizedHeight - cropHeight
           cropY = newCropY > 0 ? newCropY : 0
         }
-        console.log('cropY', cropY)
 
         // Crop the resized image from the horizontal middle
         const croppedImageBuffer = await sharp(resizedImageBuffer)
