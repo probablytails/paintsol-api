@@ -303,7 +303,28 @@ export async function getImagesWithoutArtist({ page }: SearchImagesWithoutArtist
 
 type SearchImagesByCollectionId = {
   collection_id: number
-  page: number
+  page?: number
+}
+
+export async function getImagesAllByCollectionId({ collection_id }: SearchImagesByCollectionId) {
+  try {
+    const data = await appDataSource
+      .createQueryBuilder(CollectionImage, 'ci')
+      .innerJoinAndSelect('ci.image', 'image')
+      .where('ci.collection_id = :collectionId', { collectionId: collection_id })
+      .orderBy('ci.image_position', 'ASC')
+      .getManyAndCount()
+
+    const collectionImagesWithImages = data?.[0] || []
+    const collectionImagesWithImagesCount = data?.[1] || []
+
+    // Extract images from the collectionImagesWithImages array
+    const images = collectionImagesWithImages.map(ci => ci.image)
+
+    return [images, collectionImagesWithImagesCount]
+  } catch (error) {
+    handleThrowError(error)
+  }
 }
 
 export async function getImagesByCollectionId({ collection_id, page }: SearchImagesByCollectionId) {
@@ -335,7 +356,7 @@ export async function getCollectionPreviewImages(collectionId: number) {
     const collectionImageRepo = appDataSource.getRepository(CollectionImage)
     const collectionImages = await collectionImageRepo
       .createQueryBuilder('collection_image')
-      .where('collection_image.preview_position > 1')
+      .where('collection_image.preview_position >= 1')
       .innerJoinAndSelect('collection_image.image', 'image')
       .innerJoin('collection_image.collection', 'collection', 'collection.id = :collectionId', { collectionId })
       .orderBy('collection_image.image_position', 'ASC')
