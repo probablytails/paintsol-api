@@ -11,7 +11,7 @@ const cron = require('node-cron')
 import * as express from 'express'
 import { Request, Response } from 'express'
 import { auth, requiresAuth } from 'express-openid-connect'
-import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug } from './controllers/artist'
+import { getAllArtists, getAllArtistsWithImages, getArtistById, getArtistBySlug, getArtists } from './controllers/artist'
 import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
   getImagesByTagId, getImages, getImagesWithoutArtist, getImagesByCollectionId } from './controllers/image'
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
@@ -156,6 +156,20 @@ const startApp = async () => {
         const data = await queryArtistCountMaterializedView()
         res.status(200)
         res.send({ artist_count: data })
+      } catch (error) {
+        res.status(400)
+        res.send({ message: error.message })
+      }
+    })
+
+  app.get('/artists',
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
+      try {
+        const { page } = req.locals
+        const data = await getArtists({ page })
+        res.status(200)
+        res.send(data)
       } catch (error) {
         res.status(400)
         res.send({ message: error.message })

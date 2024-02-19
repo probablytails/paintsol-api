@@ -2,6 +2,7 @@ import { Equal, ILike } from 'typeorm'
 import appDataSource from '../db'
 import { Artist } from '../models/artist'
 import { handleThrowError } from '../lib/errors'
+import { getPaginationQueryParams } from '../lib/pagination'
 
 type FindOrCreateArtists = string[]
 
@@ -41,6 +42,28 @@ export async function getAllArtistsWithImages() {
     .groupBy('artist.id')
     .orderBy('COUNT(imageArtist.id)', 'DESC')
     .getMany()
+
+  return artistsWithImages
+}
+
+type GetArtists = {
+  page: number
+}
+
+export async function getArtists({ page }: GetArtists) {
+  const artistRepository = appDataSource.getRepository(Artist)
+  const { skip, take } = getPaginationQueryParams(page)
+
+  const artistsWithImages = await artistRepository
+    .createQueryBuilder('artist')
+    .leftJoinAndSelect(
+      'artist.images',
+      'image',
+      'ROW(image.id, artist.id) IN (SELECT image_id, artist_id FROM image_artist)'
+    )
+    .skip(skip)
+    .take(take)
+    .getManyAndCount()
 
   return artistsWithImages
 }
