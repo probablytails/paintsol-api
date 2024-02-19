@@ -169,12 +169,13 @@ export async function updateImage({
 export async function deleteImage(id: number) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
-    const result = await imageRepo.delete(id)
-
-    const rowDeleted = result?.affected === 1
-    if (!rowDeleted) {
+    
+    const image = await getImageById(id)
+    if (!image) {
       throw new Error('Could not delete because an image with that id does not exist')
     }
+
+    await imageRepo.remove(image)
   } catch (error: unknown) {
     handleThrowError(error)
   }
