@@ -78,8 +78,6 @@ export async function getCollections({ page, retrieveAll, type, sort }: SearchCo
       queryCollections += ' ORDER BY c.created_at ASC'
     }
 
-
-
     // Construct the query for fetching total count of collections including type filtering
     let queryCount = 'SELECT COUNT(*) AS "count" FROM collection c'
     if (type === 'general') {
