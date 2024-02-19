@@ -6,14 +6,15 @@ import { Collection } from '../models/collection'
 import { getCollectionPreviewImages } from './image'
 import { CollectionImage } from '../models/collection_image'
 
-export type CollectionType = 'general' | 'telegram-sticker' | 'discord-sticker'
+export type CollectionType = 'general' | 'telegram-stickers' | 'discord-stickers'
 
 type SearchCollection = {
   page: number
   retrieveAll: boolean
+  type: 'general' | 'telegram-stickers' | 'discord-stickers' | 'stickers' | 'all'
 }
 
-export async function getCollections({ page, retrieveAll }: SearchCollection) {
+export async function getCollections({ page, retrieveAll, type }: SearchCollection) {
   try {
     // Validate that page is an integer greater than or equal to 1 if it's provided
     if (page !== undefined && (!Number.isInteger(page) || page < 1)) {
@@ -48,18 +49,32 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
       LEFT JOIN
         collection_image ci ON ci.collection_id = c.id
       LEFT JOIN
-        image i ON ci.image_id = i.id AND ci.preview_position >= 1
+        image i ON ci.image_id = i.id AND ci.preview_position >= 1`
+
+    // Append WHERE clause based on the type parameter
+    if (type === 'general') {
+      queryCollections += ' WHERE c.type = \'general\''
+    } else if (type === 'telegram-stickers') {
+      queryCollections += ' WHERE c.type = \'telegram-stickers\''
+    } else if (type === 'discord-stickers') {
+      queryCollections += ' WHERE c.type = \'discord-stickers\''
+    } else if (type === 'stickers') {
+      queryCollections += ' WHERE c.type IN (\'telegram-stickers\', \'discord-stickers\')'
+    }
+
+    queryCollections += `
       GROUP BY
         c.id
       ORDER BY
-        c.id`
+        c.id
+    `
 
     // Construct the query for fetching total count of collections
     const queryCount = 'SELECT COUNT(*) AS "count" FROM collection;'
-
+    
     let take = 0
     let skip = 0
-
+    
     // If retrieveAll is true, execute only the query for fetching collections
     if (retrieveAll === true) {
       queryCollections += ';'
@@ -69,8 +84,8 @@ export async function getCollections({ page, retrieveAll }: SearchCollection) {
       take = pagination.take
       skip = pagination.skip
       queryCollections += `
-        LIMIT $1
-        OFFSET $2;`
+      LIMIT $1
+      OFFSET $2;`
     }
 
     // Execute both queries

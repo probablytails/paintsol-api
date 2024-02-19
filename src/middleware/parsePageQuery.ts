@@ -1,5 +1,6 @@
 import { NextFunction, Response } from 'express'
 import { PageRequest } from '../types'
+import { CollectionType } from '../controllers/collections'
 
 export const parsePageQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
   const { id, page } = req.query
@@ -12,6 +13,17 @@ export const parsePageQuery = async (req: PageRequest, res: Response, next: Next
   req.locals = {
     id: parsedId,
     page: parsedPage
+  }
+
+  await next()
+}
+
+export const parseCollectionsQuery = async (req: PageRequest, res: Response, next: NextFunction) => {
+  const { type } = req.query
+
+  req.locals = {
+    ...req.locals,
+    collectionType: type as CollectionType
   }
 
   await next()

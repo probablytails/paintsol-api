@@ -17,7 +17,7 @@ import { getImageById, getImageBySlug, getImageMaxId, getImagesByArtistId,
 import { getAllTags, getAllTagsWithImages, getTagById } from './controllers/tag'
 import { initAppDataSource } from './db'
 import { config } from './lib/config'
-import { parsePageQuery } from './middleware/parsePageQuery'
+import { parseCollectionsQuery, parsePageQuery } from './middleware/parsePageQuery'
 import { parsePathIntIdOrSlug } from './middleware/parsePathIntIdOrSlug'
 import { ArtistUploadRequest, ImageUploadRequest, PageRequest, PathIntIdOrSlugRequest } from './types'
 import { deleteS3ImageAndDBImage, imageUploadFields, imagesUploadHandler } from './services/imageUpload'
@@ -331,7 +331,7 @@ const startApp = async () => {
 
   app.get('/collections/all', async function (req: Request, res: Response) {
     try {
-      const data = await getCollections({ page: 1, retrieveAll: true })
+      const data = await getCollections({ page: 1, retrieveAll: true, type: 'all' })
       res.status(200)
       res.send(data)
     } catch (error) {
@@ -342,10 +342,11 @@ const startApp = async () => {
 
   app.get('/collections',
     parsePageQuery,
+    parseCollectionsQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { page } = req.locals
-        const data = await getCollections({ page, retrieveAll: false })
+        const { collectionType, page } = req.locals
+        const data = await getCollections({ page, retrieveAll: false, type: collectionType })
         res.status(200)
         res.send(data)
       } catch (error) {
