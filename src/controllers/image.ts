@@ -385,7 +385,7 @@ export async function getCollectionPreviewImages(collectionId: number) {
       .where('collection_image.preview_position >= 1')
       .innerJoinAndSelect('collection_image.image', 'image')
       .innerJoin('collection_image.collection', 'collection', 'collection.id = :collectionId', { collectionId })
-      .orderBy('collection_image.image_position', 'ASC')
+      .orderBy('collection_image.preview_position', 'ASC')
       .getMany()
 
     return collectionImages
