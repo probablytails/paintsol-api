@@ -1,6 +1,7 @@
 import { Equal } from 'typeorm'
 import appDataSource from '../db'
 import { Tag } from '../models/tag'
+import { ImageType } from '../types'
 
 type FindOrCreateTags = string[]
 
@@ -37,14 +38,21 @@ export async function getAllTags() {
   return tags
 }
 
-export async function getAllTagsWithImages() {
+export async function getAllTagsWithImages(imageType: ImageType) {
   const tagsRepo = appDataSource.getRepository(Tag)
-  const tagsWithImages = await tagsRepo
+  let query = tagsRepo
     .createQueryBuilder('tag')
     .innerJoin('tag.images', 'imageTag')
     .groupBy('tag.id')
     .orderBy('COUNT(imageTag.id)', 'DESC')
-    .getMany()
+
+  if (imageType === 'painting') {
+    query = query.andWhere('(imageTag.type = :type OR imageTag.type = :type2)', { type: 'painting', type2: 'painting-and-meme' })
+  } else if (imageType === 'meme') {
+    query = query.andWhere('(imageTag.type = :type OR imageTag.type = :type2)', { type: 'meme', type2: 'painting-and-meme' })
+  }
+
+  const tagsWithImages = await query.getMany()
 
   return tagsWithImages
 }

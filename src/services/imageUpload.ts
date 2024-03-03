@@ -1,7 +1,7 @@
 import { createImage, deleteImage, getImageById, getImageBySlug, updateImage } from '../controllers/image'
 import { handleLogError } from '../lib/errors'
 import { getFileExtension } from '../lib/fileExtensions'
-import { ImageUploadRequest } from '../types'
+import { ImageType, ImageUploadRequest } from '../types'
 import { deleteImageFromS3, uploadImageToS3 } from './aws'
 import { createBorderImage } from './imageBorder'
 import { createMaxResizedImage } from './imageMaxResize'
@@ -74,6 +74,7 @@ type ImageUpload = {
   slug: string | null
   tagTitles: string[]
   title: string | null
+  type: ImageType
 }
 
 type ImageData = {
@@ -85,6 +86,7 @@ type ImageData = {
   slug: string | null
   tagTitles: string[]
   title: string | null
+  type: ImageType
 }
 
 const imagesUpload = async ({
@@ -105,7 +107,8 @@ const imagesUpload = async ({
   remove_no_border,
   slug,
   tagTitles,
-  title
+  title,
+  type
 }: ImageUpload) => {
   checkImageFileTypes({ fileImageAnimation, fileImageBorder, fileImageNoBorder })
   const imageData: ImageData = {
@@ -116,7 +119,8 @@ const imagesUpload = async ({
     id,
     slug,
     tagTitles,
-    title
+    title,
+    type
   }
 
   // abort early if we're going to run into the unique slug error
@@ -198,7 +202,7 @@ const imagesUpload = async ({
 export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, isUpdating: boolean) => {
   const { allow_preview_image, artistNames, border_preview_crop_position, has_animation, has_border,
     has_no_border, prevent_border_image, remove_animation, remove_border, remove_no_border, slug,
-    tagTitles = [], title } = req.body
+    tagTitles = [], title, type } = req.body
   const { fileImageAnimations, fileImageBorders, fileImageNoBorders } = req.files
 
   const fileImageAnimation = fileImageAnimations?.[0]
@@ -226,7 +230,8 @@ export const imagesUploadHandler = async (req: ImageUploadRequest, id: number, i
     remove_no_border,
     slug,
     tagTitles: parsedTagTitles,
-    title
+    title,
+    type
   })
 
   return data

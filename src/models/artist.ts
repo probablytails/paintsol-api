@@ -1,11 +1,8 @@
 /* eslint-disable indent */
 import { Entity, PrimaryGeneratedColumn, Unique, PrimaryColumn, ManyToMany,
   JoinTable, 
-  Column,
-  AfterInsert,
-  AfterRemove} from 'typeorm'
+  Column } from 'typeorm'
 import { Image } from './image'
-import appDataSource from '../db'
 
 @Entity('artist', { schema: 'public' })
 @Unique(['name'])

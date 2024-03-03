@@ -1,4 +1,4 @@
-import { Equal, LessThan, MoreThan } from 'typeorm'
+import { Equal, In, LessThan, MoreThan } from 'typeorm'
 import appDataSource from '../db'
 import { handleThrowError } from '../lib/errors'
 import { getPaginationQueryParams } from '../lib/pagination'
@@ -9,6 +9,7 @@ import { ImageArtist } from '../models/imageArtist'
 import { ImageTag } from '../models/imageTag'
 import { queryImageCountMaterializedView } from './imageCountMaterializedView'
 import { CollectionImage } from '../models/collection_image'
+import { ImageType } from '../types'
 
 export async function getImageMaxId() {
   try {
@@ -85,6 +86,7 @@ type CreateOrUpdateImage = {
   slug: string | null
   tagTitles: string[]
   title: string | null
+  type: ImageType
 }
 
 export async function createImage({
@@ -95,7 +97,8 @@ export async function createImage({
   id,
   slug,
   tagTitles,
-  title
+  title,
+  type
 }: CreateOrUpdateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
@@ -107,6 +110,7 @@ export async function createImage({
     image.id = id
     image.slug = slug || null
     image.title = title
+    image.type = type
   
     const tags = await findOrCreateTags(tagTitles)
     image.tags = tags
@@ -128,7 +132,8 @@ export async function updateImage({
   id,
   slug,
   tagTitles,
-  title  
+  title,
+  type
 }: CreateOrUpdateImage) {  
   try {
     const imageRepo = appDataSource.getRepository(Image)
@@ -143,6 +148,7 @@ export async function updateImage({
     oldImage.has_no_border = has_no_border
     oldImage.slug = slug || null
     oldImage.title = title
+    oldImage.type = type
 
     // delete existing many-to-many tags for the image before continuing
     const imageTagRepo = appDataSource.getRepository(ImageTag)
@@ -229,15 +235,35 @@ export async function getImageBySlug(slug: string) {
   }
 }
 
-type SearchImage = {
-  page: number
+const getImageTypeWherePropertyObj = (imageType: ImageType) => {
+  if (['painting', 'meme'].includes(imageType)) {
+    if (imageType === 'painting') {
+      return {
+        type: In(['painting', 'painting-and-meme'])
+      }
+    } else {
+      return {
+        type: In(['meme', 'painting-and-meme'])
+      }
+    }
+  } else {
+    return {}
+  }
 }
 
-export async function getImages({ page }: SearchImage) {
+type SearchImage = {
+  page: number
+  imageType: ImageType
+}
+
+export async function getImages({ page, imageType }: SearchImage) {
   try {
     const imageRepo = appDataSource.getRepository(Image)
     const allImagesCount = await queryImageCountMaterializedView()
     const images = await imageRepo.find({
+      where: {
+        ...getImageTypeWherePropertyObj(imageType)
+      },
       ...getPaginationQueryParams(page),
       relations: ['artists', 'tags'],
       order: {
@@ -371,16 +397,18 @@ export async function getCollectionPreviewImages(collectionId: number) {
 type SearchImagesByTagId = {
   tagId: number
   page: number
+  imageType: ImageType
 }
 
-export async function getImagesByTagId({ page, tagId }: SearchImagesByTagId) {
+export async function getImagesByTagId({ page, tagId, imageType }: SearchImagesByTagId) {
   try {
     const tag = await getTagById(tagId)
 
     const imageRepo = appDataSource.getRepository(Image)
     const data = await imageRepo.findAndCount({
       where: {
-        tags: tag
+        tags: tag,
+        ...getImageTypeWherePropertyObj(imageType)
       },
       ...getPaginationQueryParams(page),
       relations: ['artists', 'tags'],

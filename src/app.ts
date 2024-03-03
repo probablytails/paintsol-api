@@ -369,8 +369,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { page } = req.locals
-        const data = await getImages({ page })
+        const { page, imageType } = req.locals
+        const data = await getImages({ page, imageType })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -425,8 +425,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { id: tagId, page } = req.locals
-        const data = await getImagesByTagId({ tagId, page })
+        const { id: tagId, page, imageType } = req.locals
+        const data = await getImagesByTagId({ tagId, page, imageType })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -465,8 +465,8 @@ const startApp = async () => {
     parsePageQuery,
     async function (req: PageRequest, res: Response) {
       try {
-        const { page } = req.locals
-        const data = await getImages({ page })
+        const { page, imageType } = req.locals
+        const data = await getImages({ page, imageType })
         res.status(200)
         res.send(data)
       } catch (error) {
@@ -573,9 +573,11 @@ const startApp = async () => {
     })
 
   app.get('/tags/all-with-images',
-    async function (req: Request, res: Response) {
+    parsePageQuery,
+    async function (req: PageRequest, res: Response) {
       try {
-        const data = await getAllTagsWithImages()
+        const { imageType } = req.locals
+        const data = await getAllTagsWithImages(imageType)
         res.status(200)
         res.send(data)
       } catch (error) {

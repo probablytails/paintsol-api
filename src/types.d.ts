@@ -5,6 +5,7 @@ export interface PageRequest extends Request {
   locals: {
     id?: number | null
     page?: number
+    imageType?: ImageType
     collectionType?: CollectionQueryType
     collectionSort?: CollectionSortType
   }
@@ -27,7 +28,9 @@ export interface ImageUploadRequest extends Request {
   }
 }
 
-export type ImageType = 'animation' | 'border' | 'no-border' | 'preview'
+export type ImageMediumType = 'animation' | 'border' | 'no-border' | 'preview'
+
+export type ImageType = 'painting' | 'meme' | 'painting-and-meme'
 
 export type ArtistProfilePictureType = 'original' | 'preview'
 

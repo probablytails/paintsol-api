@@ -36,6 +36,9 @@ export class Image {
   })
   title: string | null
 
+  @Column({ length: 17, default: 'painting', enum: ['painting', 'meme', 'painting-and-meme'] })
+  type: string
+
   @ManyToMany(() => Artist, { cascade: true })
   @JoinTable({
     name: 'image_artist',

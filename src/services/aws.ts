@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { S3 } from 'aws-sdk'
 import { config } from '../lib/config'
-import { ArtistProfilePictureType, ImageType } from '../types'
+import { ArtistProfilePictureType, ImageMediumType } from '../types'
 
 const s3 = new S3({
   accessKeyId: config.aws.accessKeyId,
@@ -13,7 +13,7 @@ const s3 = new S3({
 
 export const deleteImageFromS3 = async (
   id: number,
-  imageType: ImageType
+  imageType: ImageMediumType
 ) => {
   const key = `${id}-${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
   const params = {
@@ -26,7 +26,7 @@ export const deleteImageFromS3 = async (
 
 export const uploadImageToS3 = async (
   id: number,
-  imageType: ImageType,
+  imageType: ImageMediumType,
   file: Express.Multer.File
 ) => {
   const key = `${id}-${getUploadImageFileName(imageType)}.${getUploadImageFileExtension(imageType)}`
@@ -42,7 +42,7 @@ export const uploadImageToS3 = async (
   return uploadResult.Location // The URL of the uploaded file in S3
 }
 
-const getUploadImageFileName = (imageType: ImageType) => {
+const getUploadImageFileName = (imageType: ImageMediumType) => {
   if (imageType === 'animation') {
     return 'animation'
   } else if (imageType === 'border') {
@@ -54,7 +54,7 @@ const getUploadImageFileName = (imageType: ImageType) => {
   }
 }
 
-const getUploadImageFileExtension = (imageType: ImageType) => {
+const getUploadImageFileExtension = (imageType: ImageMediumType) => {
   if (imageType === 'animation') {
     return 'gif'
   } else if (
